@@ -10,7 +10,8 @@
 
 void set_speed(int fd, int speed);
 bool set_Parity(int fd,int databits,int stopbits,int parity);
-int OpenDev(char *Dev);
+int openDev(char *Dev);
 int defaultConfUart(char *device);
+int confUart(char *device, int speed, int databits, int stopbits);
 
 #endif /* UART_SETTING_H_ */

@@ -85,7 +85,6 @@ void writeCommand(int fd,uint8_t cmd[], uint8_t *response )
   printf("Start measurement \n");
 	fd_set set;
         struct timeval tv;
-	char *device;
 	int nread = 0;
 
 	uint8_t buff[RESPONSE_CNT];

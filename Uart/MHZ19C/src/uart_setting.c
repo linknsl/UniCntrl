@@ -117,7 +117,7 @@ bool set_Parity(int fd,int databits,int stopbits,int parity)
 	return (true);
 }
 
-int OpenDev(char *Dev)
+int openDev(char *Dev)
 {
 	int fd = open( Dev, O_RDWR );         //| O_NOCTTY | O_NDELAY
  	if (-1 == fd) {
@@ -133,7 +133,7 @@ int defaultConfUart(char *device)
 	if(device == NULL)
 	  device = "/dev/ttyUSB0";
 
-	fd = OpenDev(device);
+	fd = openDev(device);
 
 	if (fd > 0) {
 		set_speed(fd, 9600);
@@ -143,6 +143,26 @@ int defaultConfUart(char *device)
 	}
 
 	if (set_Parity(fd,8,1,'N')== false) {
+		fprintf(stderr, "Set Parity Error\n");
+		close(fd);
+		exit(1);
+	}
+		return fd;
+}
+
+int confUart(char *device, int speed, int databits, int stopbits)
+{
+	int fd;
+	fd = openDev(device);
+
+	if (fd > 0) {
+		set_speed(fd, 9600);
+	} else {
+		fprintf(stderr, "Error opening %s: %s\n", device, strerror(errno));
+		exit(1);
+	}
+
+	if (set_Parity(fd,databits,stopbits,'N')== false) {
 		fprintf(stderr, "Set Parity Error\n");
 		close(fd);
 		exit(1);

@@ -9,28 +9,43 @@
  */
 
 #include <mhz19c.h>
+#include <uart_setting.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <read_confuguration_file.h>
 
 #define ERROR_CREATE_THREAD -11
 #define ERROR_JOIN_THREAD   -12
 #define SUCCESS        0
 
 int fd;
+int numInstance = 0;
 
 void* task_read_z19c(void *param) {
   measurement_t measurement;
 
-	fd = defaultConfUart(NULL);
+  mqtt_setting_t ms;
+  ms.topic = malloc(SIZE_LONG_STRING);
+  ms.name = malloc(SIZE_STRING);
+  readConfMqtt( &ms , numInstance);
+
+  uart_setting_t us;
+  us.device = malloc(SIZE_STRING);
+  if(!readConfUart(&us,numInstance)){ /* настройки порта из конфиг файла*/
+      fd = confUart(us.device, us.speed, us.databits, us.stopbits);
+  }
+  else{/* настройки порта по умолчанию если нет в конфиг файле*/
+      fd = defaultConfUart(NULL);
+  }
 /*  int *thr = (int*)param;*/
 	while (1) {
 	    measurement = getMeasurement (fd);
 	    printf ("co2_ppm:%d temperature:%d state:%d\n", measurement.co2_ppm,
 	  	  measurement.temperature, measurement.state);
-	    usleep(1000);
+	    usleep(1000000);
 
 	}
 	close(fd);
@@ -42,7 +57,7 @@ void terminate (int param)
 {
   puts( "Завершение программы...");
   close (fd);                             // удалить временный файл
-  exit(1);                                          // завершить работу программы со значением 1
+  exit(1);                               // завершить работу программы со значением 1
 }
 
 int main (int argc, char *argv[])
@@ -52,6 +67,7 @@ int main (int argc, char *argv[])
   funcptr = signal (SIGTERM,terminate);              // обработка сигнала
   funcptr = signal (SIGINT,terminate);              // обработка сигнала
 /*  if (funcptr == SIGINT) signal(SIGTERM,SIGINT);*/  // в случае, если funcptr будет указывать на SIG_IGN, то сигнал SIGTERM будет игнорироваться
+
 
   pthread_t thr;
   int status;
