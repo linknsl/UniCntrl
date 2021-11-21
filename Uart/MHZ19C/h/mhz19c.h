@@ -37,11 +37,11 @@ typedef struct measurement {
 } measurement_t;
 
 uint8_t mhz19_checksum(uint8_t com[]);
-void writeCommand(uint8_t cmd[], uint8_t *response,int fd);
-int getStatus();
+void writeCommand(int fd, uint8_t cmd[], uint8_t *response );
+int getStatus(int fd);
 measurement_t getMeasurement(int fd);
-void calibrateSpan(int ppm);
+void calibrateSpan(int fd,int ppm);
 void calibrateZero();
-void setAutoCalibration(bool autocalib);
+void setAutoCalibration(int fd, bool autocalib);
 
 #endif /* MHZ19C_H_ */
