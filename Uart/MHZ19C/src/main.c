@@ -36,6 +36,7 @@ void* task_read_z19c(void *param) {
 	close(fd);
 	pthread_exit(0);
 	return 0;
+
 }
 
 void terminate (int param)
