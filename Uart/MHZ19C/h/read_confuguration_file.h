@@ -21,6 +21,9 @@ typedef struct uart_setting {
 typedef struct mqtt_setting {
   char *topic;
   char *name;
+  char *host;
+  int port;
+  int keepalive;
   int polling_time;
   int number;
 } mqtt_setting_t;

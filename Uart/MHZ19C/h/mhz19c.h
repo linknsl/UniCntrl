@@ -30,6 +30,15 @@ enum MHZ19_UART_DATA
 	STAT
 };
 
+typedef enum MHZ19_CALIBRATE
+{
+	ZERO,
+	SPAN,
+	AUTO_ON,
+	AUTO_OFF
+}eMhz19_calibrate;
+
+int snd;
 typedef struct measurement {
 	int co2_ppm;
 	int temperature;

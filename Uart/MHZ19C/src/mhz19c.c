@@ -80,6 +80,23 @@ void calibrateSpan(int fd,int ppm)
 	writeCommand(fd,cmd, NULL);
 }
 
+void cntrlCalibrate(int fd, eMhz19_calibrate key ){
+
+  switch (key) {
+    case ZERO:
+      calibrateZero(fd);
+      break;
+    case AUTO_ON:
+      setAutoCalibration(fd, true);
+      break;
+    case AUTO_OFF:
+      setAutoCalibration(fd, false);
+      break;
+    default:
+      break;
+  }
+}
+
 void writeCommand(int fd,uint8_t cmd[], uint8_t *response )
 {
   printf("Start measurement \n");

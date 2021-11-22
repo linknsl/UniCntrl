@@ -71,16 +71,20 @@ int readConfMqtt( mqtt_setting_t *ms , int numInstance)
   setting = config_lookup(&cfg, "application.uarts.mqtt");
   if(setting != NULL)
   {
-      const char *topic, *name;
+      const char *topic, *name, *host;
       config_setting_t *mqtt_setting = config_setting_get_elem(setting, numInstance);
 
       if(!(config_setting_lookup_string(mqtt_setting, "topic", &topic)
-	   &&(config_setting_lookup_string(mqtt_setting, "name", &name)
+	   && config_setting_lookup_string(mqtt_setting, "name", &name)
+	   && config_setting_lookup_string(mqtt_setting, "host", &host)
+	   && config_setting_lookup_int(mqtt_setting, "port", &ms->port)
+	   && config_setting_lookup_int(mqtt_setting, "keepalive", &ms->keepalive)
            && config_setting_lookup_int(mqtt_setting, "polling_time", &ms->polling_time)
            && config_setting_lookup_int(mqtt_setting, "number", &ms->number)
-           ))){
+           )){
 	      memcpy(ms->topic,topic, SIZE_LONG_STRING);
 	      memcpy(ms->name,name, SIZE_STRING);
+	      memcpy(ms->host,host, SIZE_STRING);
       }
 
   }
