@@ -109,9 +109,9 @@ void writeCommand(int fd,uint8_t cmd[], uint8_t *response )
 	buff[8] = mhz19_checksum(cmd);
 
 	write(fd, buff, RESPONSE_CNT);
-	memset(response , 0,RESPONSE_CNT);
 	if (response != NULL)
 	{
+	    memset(response , 0,RESPONSE_CNT);
 		   do{
 			FD_ZERO(&set);
 			FD_SET(fd, &set);

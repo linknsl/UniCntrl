@@ -29,17 +29,6 @@ void* task_read_z19c(void *param) {
   measurement_t measurement;
 
   mqtt_setting_t ms;
-  ms.topic = malloc(SIZE_LONG_STRING);
-  ms.host = malloc(SIZE_STRING);
-  ms.name = malloc(SIZE_STRING);
-  char *buf = malloc(SIZE_STRING);
-  char *topic = malloc(SIZE_LONG_STRING);
-  readConfMqtt( &ms , numInstance);
-  mqtt_setup( &ms);
-  sprintf(topic,"%s/setCalibrate", ms.topic);
-  mqtt_sub( topic);
-  int snd;
-
   uart_setting_t us;
   us.device = malloc(SIZE_STRING);
   if(!readConfUart(&us,numInstance)){ /* настройки порта из конфиг файла*/
@@ -48,6 +37,23 @@ void* task_read_z19c(void *param) {
   else{/* настройки порта по умолчанию если нет в конфиг файле*/
       fd = defaultConfUart(NULL);
   }
+
+  ms.topic = malloc(SIZE_LONG_STRING);
+  ms.host = malloc(SIZE_STRING);
+  ms.name = malloc(SIZE_STRING);
+  ms.fd = fd;
+  char *buf = malloc(SIZE_STRING);
+  char *topic = malloc(SIZE_LONG_STRING);
+  readConfMqtt( &ms , numInstance);
+  mqtt_setup( &ms);
+  sprintf(topic,"%s/setCalibrate", ms.topic);
+  mqtt_sub( topic);
+
+  sprintf(topic,"%s/setCalibrateSpan", ms.topic);
+  mqtt_sub( topic);
+  int snd;
+
+
 /*  int *thr = (int*)param;*/
 	while (1) {
 	    measurement = getMeasurement (fd);

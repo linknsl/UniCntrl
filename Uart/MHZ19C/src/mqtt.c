@@ -7,8 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <mhz19c.h>
 #include <mqtt.h>
 
+int fd;
+struct mosquitto *mosq = NULL;
 void connect_callback(struct mosquitto *mosq, void *obj, int result)
 {
 	printf("connect callback, rc=%d\n", result);
@@ -17,11 +20,19 @@ void connect_callback(struct mosquitto *mosq, void *obj, int result)
 void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message)
 {
 	bool match = 0;
+	int num=0;
 	printf("got message '%.*s' for topic '%s'\n", message->payloadlen, (char*) message->payload, message->topic);
+
+	mosquitto_topic_matches_sub("uart1/MHZ19C/setCalibrateSpan", message->topic, &match );
+	if (match) {
+	    num = atoi(message->payload);
+	    calibrateSpan(fd,num);
+	}
 
 	mosquitto_topic_matches_sub("uart1/MHZ19C/setCalibrate", message->topic, &match );
 	if (match) {
-		printf("got message for setcalibrateZero topic\n");
+	    num = atoi(message->payload);
+	    cntrlCalibrate(fd, ( eMhz19_calibrate )num );
 	}
 
 }
@@ -44,7 +55,6 @@ void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const 
 
 }
 
-struct mosquitto *mosq = NULL;
 void mqtt_setup(mqtt_setting_t *ms){
   char *host = ms->host;
   int port = ms->port;
@@ -60,7 +70,6 @@ void mqtt_setup(mqtt_setting_t *ms){
   else{
 	mosquitto_connect_callback_set(mosq, connect_callback);
 	mosquitto_message_callback_set(mosq, message_callback);
-
   }
 
   mosquitto_log_callback_set(mosq, mosq_log_callback);

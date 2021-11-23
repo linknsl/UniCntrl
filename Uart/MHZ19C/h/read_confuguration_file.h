@@ -26,6 +26,7 @@ typedef struct mqtt_setting {
   int keepalive;
   int polling_time;
   int number;
+  int fd;
 } mqtt_setting_t;
 
 int readConfMqtt( mqtt_setting_t *ms , int numInstance);
