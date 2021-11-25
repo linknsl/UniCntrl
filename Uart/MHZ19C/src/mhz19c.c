@@ -6,7 +6,9 @@
  */
 #include <mhz19c.h>
 #include <uart_setting.h>
+#include <read_confuguration_file.h>
 
+int time;
 
 uint8_t getppm[] 	= {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t zerocalib[]     = {0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -16,13 +18,21 @@ uint8_t autocalib_off[] = {0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 uint8_t mhz19_checksum(uint8_t com[])
 {
+  int i;
 	uint8_t sum = 0x00;
-	for (int i = 1; i < REQUEST_CNT; i++)
+	for (i = 1; i < REQUEST_CNT; i++)
 	{
 		sum += com[i];
 	}
 	sum = 0xff - sum + 0x01;
 	return sum;
+}
+
+/* undocumented function */
+void setPollingTime(int polling_time)
+{
+  printf("set time %d \n",polling_time);
+  time = polling_time;
 }
 
 /* undocumented function */
@@ -52,11 +62,12 @@ measurement_t getMeasurement(int fd)
 
 	// parse
 	measurement_t measurement = {};
-	if (response[0] == 0xff && response[1] == 0x86 && mhz19_checksum(response) == response[RESPONSE_CNT -1])
+	if (response[0] == 0xff && response[1] == 0x86)
 	{
 		measurement.co2_ppm = response[2] * 256 + response[3];
 		measurement.temperature = response[4] - 40;
 		measurement.state = response[5];
+		measurement.cheksum = (mhz19_checksum(response) == response[RESPONSE_CNT -1]);
 	}
 	else
 	{
@@ -67,11 +78,12 @@ measurement_t getMeasurement(int fd)
 
 void calibrateSpan(int fd,int ppm)
 {
+  int i;
 	if (ppm < 1000)
 		return;
 
 	uint8_t cmd[REQUEST_CNT];
-	for (int i = 0; i < REQUEST_CNT; i++)
+	for (i = 0; i < REQUEST_CNT; i++)
 	{
 		cmd[i] = spancalib[i];
 	}
@@ -99,7 +111,6 @@ void cntrlCalibrate(int fd, eMhz19_calibrate key ){
 
 void writeCommand(int fd,uint8_t cmd[], uint8_t *response )
 {
-  printf("Start measurement \n");
 	fd_set set;
         struct timeval tv;
 	int nread = 0;
@@ -109,6 +120,8 @@ void writeCommand(int fd,uint8_t cmd[], uint8_t *response )
 	buff[8] = mhz19_checksum(cmd);
 
 	write(fd, buff, RESPONSE_CNT);
+
+	sleep(time);
 	if (response != NULL)
 	{
 	    memset(response , 0,RESPONSE_CNT);
@@ -123,6 +136,7 @@ void writeCommand(int fd,uint8_t cmd[], uint8_t *response )
 				}
 			    }
 			    else{ /*timeout*/
+				printf("Выход по timeout ");
 				break;
 			    }
 

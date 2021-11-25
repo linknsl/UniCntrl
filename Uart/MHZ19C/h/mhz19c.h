@@ -40,11 +40,13 @@ typedef struct measurement {
 	int co2_ppm;
 	int temperature;
 	int state;
+	bool cheksum;
 } measurement_t;
 
 uint8_t mhz19_checksum(uint8_t com[]);
 void writeCommand(int fd, uint8_t cmd[], uint8_t *response );
 int getStatus(int fd);
+void setPollingTime(int polling_time);
 measurement_t getMeasurement(int fd);
 void calibrateSpan(int fd,int ppm);
 void cntrlCalibrate(int fd, eMhz19_calibrate key );

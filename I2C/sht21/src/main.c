@@ -31,7 +31,6 @@ void* task_read_z19c(void *param) {
   mqtt_setting_t ms;
   uart_setting_t us;
 
-
   if(!readConfUart(&us,0)){ /* настройки порта из конфиг файла*/
       fd = confUart(us.device, us.speed, us.databits, us.stopbits);
   }
