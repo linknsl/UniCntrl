@@ -29,22 +29,21 @@ typedef enum MHZ19_CALIBRATE {
 	ZERO, SPAN, AUTO_ON, AUTO_OFF
 } eMhz19_calibrate;
 
-int snd;
-typedef struct measurement {
+typedef struct measurement_mhz19 {
 	int co2_ppm;
 	int temperature;
 	int state;
 	bool cheksum;
-} measurement_t;
+} measurement_mhz19_t;
 
 uint8_t mhz19_checksum(uint8_t com[]);
-void writeCommand(int fd, uint8_t cmd[], uint8_t *response);
-int getStatus(int fd);
-void setPollingTime(int polling_time);
-measurement_t getMeasurement(int fd);
-void calibrateSpan(int fd, int ppm);
-void cntrlCalibrate(int fd, eMhz19_calibrate key);
-void calibrateZero();
-void setAutoCalibration(int fd, bool autocalib);
+void writeCommand(uint8_t cmd[], uint8_t *response);
+int getStatus(void);
+void setPollingTime(int pol_time);
+measurement_mhz19_t getMeasurementMhz19c(void);
+void calibrateSpan(int ppm);
+void cntrlCalibrate(eMhz19_calibrate key);
+void calibrateZero(void);
+void setAutoCalibration( bool autocalib);
 
 #endif /* MHZ19C_H_ */

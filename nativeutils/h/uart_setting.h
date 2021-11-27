@@ -8,10 +8,17 @@
 #ifndef UART_SETTING_H_
 #define UART_SETTING_H_
 
-void set_speed(int fd, int speed);
-bool set_Parity(int fd,int databits,int stopbits,int parity);
+#include <mhz19c.h>
+
+#define DEFAULT_DEVICE "/dev/ttyUSB0"
+
+bool set_Parity(int databits, int stopbits, int parity);
 int openDev(char *Dev);
-int defaultConfUart(char *device);
 int confUart(char *device, int speed, int databits, int stopbits);
+int autoConfUart(void);
+int defaultConfUart(char *device);
+int getDescriptor(void);
+void closeUart(void);
+void Reconnect(bool status);
 
 #endif /* UART_SETTING_H_ */

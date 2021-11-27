@@ -10,11 +10,18 @@
 
 #include <read_confuguration_file.h>
 
+typedef struct mqtt_sub_obj {
+	char *in;
+	char *out;
+} mqtt_sub_obj_t;
+
 void mqtt_subscribe_init(char *topic);
 void mqtt_setup(mqtt_setting_t *ms);
 int mqtt_send(char *msg, char *topic);
 int mqtt_sub(char *topic);
 int mqtt_gen_topic_and_sub(char *topic, char *sub_topic);
 int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value);
+int mqtt_gen_topic_and_pub_float(char *topic, char *sub_topic, float value);
+int mqtt_set_topic_sub(void *obj, char *param, char *topic);
 
 #endif /* H_MQTT_H_ */

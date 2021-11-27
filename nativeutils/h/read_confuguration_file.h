@@ -10,9 +10,6 @@
 
 #define SIZE_STRING 128
 #define SIZE_LONG_STRING 256
-#define ERROR_CREATE_THREAD -11
-#define ERROR_JOIN_THREAD   -12
-#define SUCCESS        		0
 
 typedef struct uart_setting {
 	char *device;
@@ -36,4 +33,5 @@ typedef struct mqtt_setting {
 
 int readConfMqtt(mqtt_setting_t *ms, int numInstance);
 int readConfUart(uart_setting_t *us, int numInstance);
+int newconfig(void);
 #endif /* H_READ_CONFUGURATION_FILE_H_ */

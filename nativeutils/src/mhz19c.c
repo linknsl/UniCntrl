@@ -6,9 +6,11 @@
  */
 #include <mhz19c.h>
 #include <uart_setting.h>
-#include <read_confuguration_file.h>
+#include <common.h>
 
-int time;
+
+int polling_time;
+pthread_mutex_t mutex_measurement;
 
 uint8_t getppm[] = { 0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t zerocalib[] = { 0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -26,46 +28,50 @@ uint8_t mhz19_checksum(uint8_t com[]) {
 	return sum;
 }
 
-/* undocumented function */
-void setPollingTime(int polling_time) {
-	printf("set time %d \n", polling_time);
-	time = polling_time;
+void setPollingTime(int pol_time) {
+	printf("set time %d \n", pol_time);
+	polling_time = pol_time;
 }
 
 /* undocumented function */
-int getStatus(int fd) {
-	measurement_t m = getMeasurement(fd);
+int getStatus() {
+	measurement_mhz19_t m = getMeasurementMhz19c();
 	return m.state;
 }
 
-void setAutoCalibration(int fd, bool autocalib) {
-	writeCommand(fd, autocalib ? autocalib_on : autocalib_off, NULL);
+void setAutoCalibration(bool autocalib) {
+	pthread_mutex_lock(&mutex_measurement);
+	writeCommand(autocalib ? autocalib_on : autocalib_off, NULL);
+	pthread_mutex_unlock(&mutex_measurement);
 }
 
-void calibrateZero(int fd) {
-	writeCommand(fd, zerocalib, NULL);
+void calibrateZero(void) {
+	pthread_mutex_lock(&mutex_measurement);
+	writeCommand(zerocalib, NULL);
+	pthread_mutex_unlock(&mutex_measurement);
 }
 
-measurement_t getMeasurement(int fd) {
+measurement_mhz19_t getMeasurementMhz19c(void) {
 	uint8_t response[RESPONSE_CNT];
 	memset(response, 0, RESPONSE_CNT);
 
-	writeCommand(fd, getppm, response);
+	pthread_mutex_lock(&mutex_measurement);
+	writeCommand(getppm, response);
+	pthread_mutex_unlock(&mutex_measurement);
 
 	// parse
-	measurement_t measurement = { };
-	if (response[0] == 0xff && response[1] == 0x86) {
+	measurement_mhz19_t measurement = { };
+	if (response[0] == 0xff && response[1] == 0x86 && (mhz19_checksum(response) == response[RESPONSE_CNT - 1])) {
 		measurement.co2_ppm = response[2] * 256 + response[3];
 		measurement.temperature = response[4] - 40;
 		measurement.state = response[5];
-		measurement.cheksum = (mhz19_checksum(response) == response[RESPONSE_CNT - 1]);
 	} else {
 		measurement.co2_ppm = measurement.temperature = measurement.state = -1;
 	}
 	return measurement;
 }
 
-void calibrateSpan(int fd, int ppm) {
+void calibrateSpan(int ppm) {
 	int i;
 	if (ppm < 1000)
 		return;
@@ -76,38 +82,39 @@ void calibrateSpan(int fd, int ppm) {
 	}
 	cmd[3] = (uint8_t) (ppm / 256);
 	cmd[4] = (uint8_t) (ppm % 256);
-	writeCommand(fd, cmd, NULL);
+	writeCommand(cmd, NULL);
 }
 
-void cntrlCalibrate(int fd, eMhz19_calibrate key) {
+void cntrlCalibrate(eMhz19_calibrate key) {
 
 	switch (key) {
 	case ZERO:
-		calibrateZero(fd);
+		calibrateZero();
 		break;
 	case AUTO_ON:
-		setAutoCalibration(fd, true);
+		setAutoCalibration(true);
 		break;
 	case AUTO_OFF:
-		setAutoCalibration(fd, false);
+		setAutoCalibration(false);
 		break;
 	default:
 		break;
 	}
 }
 
-void writeCommand(int fd, uint8_t cmd[], uint8_t *response) {
+void writeCommand(uint8_t cmd[], uint8_t *response) {
 	fd_set set;
 	struct timeval tv;
-	int nread = 0;
+	int fd, nread = 0;
+
+	fd = getDescriptor();
 
 	uint8_t buff[RESPONSE_CNT];
 	memcpy(buff, cmd, 8);
 	buff[8] = mhz19_checksum(cmd);
 
 	write(fd, buff, RESPONSE_CNT);
-
-	sleep(time);
+	sleep(polling_time);
 	if (response != NULL) {
 		memset(response, 0, RESPONSE_CNT);
 		do {
@@ -119,8 +126,10 @@ void writeCommand(int fd, uint8_t cmd[], uint8_t *response) {
 				if (FD_ISSET(fd, &set)) {
 					nread += read(fd, response + nread, sizeof(RESPONSE_CNT));
 				}
+				Reconnect(true);
 			} else { /*timeout*/
-				printf("Выход по timeout ");
+				Reconnect(false);
+				printf("Exit timeout \n");
 				break;
 			}
 

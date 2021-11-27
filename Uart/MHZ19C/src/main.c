@@ -9,78 +9,68 @@
  */
 
 #include <mhz19c.h>
-#include <mqtt.h>
-#include <read_confuguration_file.h>
-#include <mosquitto.h>
 #include <uart_setting.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <signal.h>
+#include <common.h>
 
-int fd;
+char *subscribe[] = { "setCalibrateSpan", "setCalibrate" };
+char *publicate[] = { "co2_ppm", "temperature" };
 
 void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
-	bool match = 0;
 	int num = 0;
-	printf("got message '%.*s' for topic '%s'\n", message->payloadlen, (char*) message->payload, message->topic);
 
-	mosquitto_topic_matches_sub("uart1/MHZ19C/setCalibrateSpan", message->topic, &match);
-	if (match) {
-		num = atoi(message->payload);
-		calibrateSpan(fd, num);
+	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
+		num = (eMhz19_calibrate) atoi(message->payload);
+		calibrateSpan(num);
 	}
-	mosquitto_topic_matches_sub("uart1/MHZ19C/setCalibrate", message->topic, &match);
-	if (match) {
-		num = atoi(message->payload);
-		cntrlCalibrate(fd, (eMhz19_calibrate) num);
+	if (mqtt_set_topic_sub(obj, subscribe[1], message->topic)) {
+		num = (eMhz19_calibrate) atoi(message->payload);
+		cntrlCalibrate(num);
 	}
 }
 
 void mqtt_subscribe_init(char *topic) {
-	mqtt_gen_topic_and_sub(topic, "setCalibrate");
-	mqtt_gen_topic_and_sub(topic, "setCalibrateSpan");
+	int i = 0;
+	char *mess;
+	for (mess = subscribe[i]; mess; i++, mess = subscribe[i]) {
+		mqtt_gen_topic_and_sub(topic, subscribe[i]);
+	}
 }
 
-void* read_z19c_to_public(void *param) {
-	int *thr = (int*) param;
-
-	measurement_t measurement;
+void* read_sensor(void *param) {
+	measurement_mhz19_t measurement;
 	mqtt_setting_t ms;
-	uart_setting_t us;
 
-	if (!readConfUart(&us, 0)) { /* настройки порта из конфиг файла*/
-		fd = confUart(us.device, us.speed, us.databits, us.stopbits);
-	} else {/* настройки порта по умолчанию если нет в конфиг файле*/
-		fd = defaultConfUart(NULL);
-	}
+#ifdef ARM
+	autoConfUart() ;
+#else
+#endif
+	newconfig();
 	ms.fun_mess_clb = message_callback;
 	mqtt_setup(&ms);
 	mqtt_subscribe_init(ms.topic);
 	while (1) {
-		measurement = getMeasurement(fd);
-		mqtt_gen_topic_and_pub_int(ms.topic, "co2_ppm", measurement.co2_ppm);
-		mqtt_gen_topic_and_pub_int(ms.topic, "temperature", measurement.temperature);
-		printf("co2_ppm:%d temperature:%d state:%d\n", measurement.co2_ppm, measurement.temperature, measurement.state);
-		usleep(1000);
+		measurement = getMeasurementMhz19c();
+		mqtt_gen_topic_and_pub_int(ms.topic, publicate[0], measurement.co2_ppm);
+		mqtt_gen_topic_and_pub_int(ms.topic, publicate[1], measurement.temperature);
+		usleep(100);
 	}
-	close(fd);
-	pthread_exit(0);
+	closeUart();
+	pthread_exit(SUCCESS);
 	return SUCCESS;
 }
 
 void terminate(int param) {
-	exit(1);                               // завершить работу программы со значением 1
+	closeUart();
+	exit(FAILURE);
 }
 
 int main(int argc, char *argv[]) {
-	signal(SIGTERM, terminate);              // обработка сигнала
-	signal(SIGINT, terminate);              // обработка сигнала
+	signal(SIGTERM, terminate);
+	signal(SIGINT, terminate);
 
 	pthread_t thr;
 	int status;
-	status = pthread_create(&thr, NULL, read_z19c_to_public, &thr);
+	status = pthread_create(&thr, NULL, read_sensor, &thr);
 	if (status != 0) {
 		printf("main error: can't create thread, status = %d\n", status);
 		exit(ERROR_CREATE_THREAD);
