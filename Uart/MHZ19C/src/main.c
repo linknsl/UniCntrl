@@ -27,7 +27,19 @@ void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_
 		cntrlCalibrate(num);
 	}
 }
+void mqtt_read_config(mqtt_config_t *obj) {
+	readConfMqtt_new(obj);
 
+	mqtt_config_children_t *item;
+	params_t *params;
+	for (item = obj->children; item; item = item->children) {
+		printf("%s \n", item->sensor_name);
+
+		for (params = item->params; params; params = params->next) {
+			printf("%s \n", params->param);
+		}
+	}
+}
 void mqtt_subscribe_init(char *topic) {
 	int i = 0;
 	char *mess;
@@ -39,11 +51,12 @@ void mqtt_subscribe_init(char *topic) {
 void* read_sensor(void *param) {
 	measurement_mhz19_t measurement;
 	mqtt_setting_t ms;
-
 #ifdef ARM
 	autoConfUart() ;
 #else
 #endif
+	mqtt_config_t cfg;
+	mqtt_read_config(&cfg);
 	newconfig();
 	ms.fun_mess_clb = message_callback;
 	mqtt_setup(&ms);

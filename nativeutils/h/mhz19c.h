@@ -1,7 +1,7 @@
 /*
  * MHZ19C.h
  *
- *  Created on: 14 нояб. 2021 г.
+ *  Created on: 14 нояб. 2021 г.4e76trf
  *      Author: root
  */
 #include <stdio.h>
@@ -39,7 +39,7 @@ typedef struct measurement_mhz19 {
 uint8_t mhz19_checksum(uint8_t com[]);
 void writeCommand(uint8_t cmd[], uint8_t *response);
 int getStatus(void);
-void setPollingTime(int pol_time);
+void setPollingTimeMhz19c(int pol_time);
 measurement_mhz19_t getMeasurementMhz19c(void);
 void calibrateSpan(int ppm);
 void cntrlCalibrate(eMhz19_calibrate key);

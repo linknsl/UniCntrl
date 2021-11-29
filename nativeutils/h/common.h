@@ -13,7 +13,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <mqtt.h>
-#include <read_confuguration_file.h>
+#include <read_conf_file.h>
+
 #include <mosquitto.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -23,7 +24,6 @@
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
-
 
 #define MAX_BUF 128
 

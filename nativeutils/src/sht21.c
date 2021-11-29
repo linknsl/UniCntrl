@@ -18,6 +18,12 @@
 #include <common.h>
 #include <sht21.h>
 
+static int polling_time;
+
+void setPollingTimeSht21(int pol_time) {
+	polling_time = pol_time;
+}
+
 float calc_temperature_sht21(float temp_raw) {
 	float result = ((175.72 * (temp_raw / 65536)) - 46.85);
 	return result;
@@ -30,6 +36,7 @@ float calc_humidity_sht21(float humidity_raw) {
 
 measurement_sht21_t getMeasurementSht21(void) {
 	measurement_sht21_t measurement;
+	sleep(polling_time);
 	measurement.humidity = calc_humidity_sht21(get_setting_float(HWMON_SHT21, SHT21_HUMIDITY));
 	measurement.temperature = calc_temperature_sht21(get_setting_float(HWMON_SHT21, SHT21_TEMP));
 	return measurement;

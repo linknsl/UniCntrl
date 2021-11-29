@@ -8,12 +8,7 @@
 #ifndef H_MQTT_H_
 #define H_MQTT_H_
 
-#include <read_confuguration_file.h>
-
-typedef struct mqtt_sub_obj {
-	char *in;
-	char *out;
-} mqtt_sub_obj_t;
+#include <read_conf_file.h>
 
 void mqtt_subscribe_init(char *topic);
 void mqtt_setup(mqtt_setting_t *ms);

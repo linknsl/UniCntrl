@@ -21,6 +21,7 @@ typedef struct measurement_sht21 {
 float calc_humidity_sht21(float humidity_raw);
 float calc_temperature_sht21(float temp_raw);
 measurement_sht21_t getMeasurementSht21(void);
+void setPollingTimeSht21(int pol_time);
 int sht21_init(void);
 
 #endif /* H_SHT21_H_ */

@@ -2,13 +2,8 @@
  needs libmosquitto-dev
  $ gcc -o libmosq libmosq.c -lmosquitto
  */
-#include <stdio.h>
-#include <mosquitto.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <mhz19c.h>
-#include <mqtt.h>
+#include <sht21.h>
 #include <common.h>
 
 int fd_uart, numInstance = 0;
@@ -17,7 +12,7 @@ void connect_callback(struct mosquitto *mosq, void *obj, int result) {
 	printf("connect callback, rc=%d\n", result);
 }
 
-int mqtt_set_topic_sub(void *obj, char *param, char * topic) {
+int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
 
 	bool match = 0;
 	char path[MAX_BUF];
@@ -69,7 +64,8 @@ void mqtt_setup(mqtt_setting_t *ms) {
 		exit(1);
 	}
 
-	setPollingTime(ms->polling_time);
+	setPollingTimeSht21(ms->polling_time);
+	setPollingTimeMhz19c(ms->polling_time);
 }
 
 int mqtt_gen_topic_and_sub(char *topic, char *sub_topic) {

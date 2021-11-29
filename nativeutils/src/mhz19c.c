@@ -9,7 +9,7 @@
 #include <common.h>
 
 
-int polling_time;
+static int polling_time;
 pthread_mutex_t mutex_measurement;
 
 uint8_t getppm[] = { 0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -28,8 +28,7 @@ uint8_t mhz19_checksum(uint8_t com[]) {
 	return sum;
 }
 
-void setPollingTime(int pol_time) {
-	printf("set time %d \n", pol_time);
+void setPollingTimeMhz19c(int pol_time) {
 	polling_time = pol_time;
 }
 
