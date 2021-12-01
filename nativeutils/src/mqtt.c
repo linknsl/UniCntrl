@@ -23,10 +23,10 @@ int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
 }
 
 /*int mqtt_gen_topic_topic(void *in, char *param, char *res) {
-	*res = malloc(sizeof(MAX_BUF));
-	sprintf(res, "%s/%s", (char*) in, param);
-	return 0;
-}*/
+ *res = malloc(sizeof(MAX_BUF));
+ sprintf(res, "%s/%s", (char*) in, param);
+ return 0;
+ }*/
 
 void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const char *str) {
 	switch (level) {
@@ -56,8 +56,8 @@ void mqtt_setup(mqtt_config_t *ms) {
 		mosquitto_message_callback_set(mosq, ms->fun_mess_clb);
 	}
 
-/*	if (ms->log != 0)
-		mosquitto_log_callback_set(mosq, mosq_log_callback);*/
+	/*	if (ms->log != 0)
+	 mosquitto_log_callback_set(mosq, mosq_log_callback);*/
 
 	if (mosquitto_connect(mosq, host, port, keepalive)) {
 		fprintf(stderr, "Unable to connect.\n");
@@ -69,14 +69,32 @@ void mqtt_setup(mqtt_config_t *ms) {
 		exit(1);
 	}
 
-/*	setPollingTimeSht21(ms->polling_time);
-	setPollingTimeMhz19c(ms->polling_time);*/
+	/*	setPollingTimeSht21(ms->polling_time);
+	 setPollingTimeMhz19c(ms->polling_time);*/
 }
 
 int mqtt_gen_topic_and_sub(char *topic, char *sub_topic) {
 	char fulltopic[SIZE_LONG_STRING];
 	sprintf(fulltopic, "%s/%s", topic, sub_topic);
 	return mqtt_sub(fulltopic);
+}
+
+int mqttResultPubInt(usr_cfg_t *ucfg, int *value_array) {
+	params_t *item;
+	int i;
+	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
+		mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+	}
+	return SUCCESS;
+}
+
+int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array) {
+	params_t *item;
+	int i;
+	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
+		mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+	}
+	return SUCCESS;
 }
 
 int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value) {

@@ -25,6 +25,11 @@
 #include <string.h>
 #include <stdbool.h>
 
+typedef struct devSensorFunc {
+	void *getMeasurement;
+	void *setPollingTime;
+} devSensorFunc_t;
+
 #define MAX_BUF 128
 
 #define ERROR_CREATE_THREAD -11

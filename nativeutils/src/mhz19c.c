@@ -8,9 +8,11 @@
 #include <uart_setting.h>
 #include <common.h>
 
-
 static int polling_time;
 pthread_mutex_t mutex_measurement;
+
+static void writeCommand(uint8_t cmd[], uint8_t *response);
+static int getMeasurement(measurement_mhz19_t *ms);
 
 uint8_t getppm[] = { 0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t zerocalib[] = { 0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -18,7 +20,7 @@ uint8_t spancalib[] = { 0xff, 0x01, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t autocalib_on[] = { 0xff, 0x01, 0x79, 0xA0, 0x00, 0x00, 0x00, 0x00 };
 uint8_t autocalib_off[] = { 0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-uint8_t mhz19_checksum(uint8_t com[]) {
+static uint8_t mhz19_checksum(uint8_t com[]) {
 	int i;
 	uint8_t sum = 0x00;
 	for (i = 1; i < REQUEST_CNT; i++) {
@@ -28,13 +30,13 @@ uint8_t mhz19_checksum(uint8_t com[]) {
 	return sum;
 }
 
-void setPollingTimeMhz19c(int pol_time) {
+static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
 }
 
 /* undocumented function */
-int getStatus() {
-	measurement_mhz19_t m = getMeasurementMhz19c();
+static int getStatus() {
+	measurement_mhz19_t m = getMeasurement();
 	return m.state;
 }
 
@@ -50,7 +52,7 @@ void calibrateZero(void) {
 	pthread_mutex_unlock(&mutex_measurement);
 }
 
-measurement_mhz19_t getMeasurementMhz19c(void) {
+static int getMeasurement(measurement_mhz19_t *ms) {
 	uint8_t response[RESPONSE_CNT];
 	memset(response, 0, RESPONSE_CNT);
 
@@ -58,16 +60,14 @@ measurement_mhz19_t getMeasurementMhz19c(void) {
 	writeCommand(getppm, response);
 	pthread_mutex_unlock(&mutex_measurement);
 
-	// parse
-	measurement_mhz19_t measurement = { };
 	if (response[0] == 0xff && response[1] == 0x86 && (mhz19_checksum(response) == response[RESPONSE_CNT - 1])) {
-		measurement.co2_ppm = response[2] * 256 + response[3];
-		measurement.temperature = response[4] - 40;
-		measurement.state = response[5];
+		ms->co2_ppm = response[2] * 256 + response[3];
+		ms->temperature = response[4] - 40;
+		ms->state = response[5];
 	} else {
-		measurement.co2_ppm = measurement.temperature = measurement.state = -1;
+		ms->co2_ppm = ms->temperature = ms->state = -1;
 	}
-	return measurement;
+	return SUCCESS;
 }
 
 void calibrateSpan(int ppm) {
@@ -101,7 +101,7 @@ void cntrlCalibrate(eMhz19_calibrate key) {
 	}
 }
 
-void writeCommand(uint8_t cmd[], uint8_t *response) {
+static void writeCommand(uint8_t cmd[], uint8_t *response) {
 	fd_set set;
 	struct timeval tv;
 	int fd, nread = 0;
@@ -134,4 +134,14 @@ void writeCommand(uint8_t cmd[], uint8_t *response) {
 
 		} while (nread < 9);
 	}
+}
+
+int getSensorFncMhz19c(devSensorFunc_t *cfgFuncs) {
+	if (cfgFuncs == NULL) {
+		return -1;
+	}
+	cfgFuncs->getMeasurement = getMeasurement;
+	cfgFuncs->setPollingTime = setPollingTime;
+
+	return SUCCESS;
 }

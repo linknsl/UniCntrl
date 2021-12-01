@@ -136,7 +136,13 @@ bool set_Parity(int databits, int stopbits, int parity) {
 }
 
 int openDev(char *Dev) {
-	fd_uart = open(Dev, O_RDWR);         //| O_NOCTTY | O_NDELAY
+	if (fd_uart > 0) {
+		printf("Reconect... Old descr %d \n", fd_uart);
+		close(fd_uart);
+		fd_uart = -1;
+	}
+	fd_uart = open(Dev, O_RDWR);
+	printf("Connect... New descr %d \n", fd_uart);
 	if (-1 == fd_uart) {
 		perror("Can't Open Serial Port");
 		return -1;
@@ -149,11 +155,12 @@ int defaultConfUart(char *device) {
 }
 
 int autoConfUart(int numInstance) {
+	uart_setting_t *us;
+	us = NULL;
+	us = malloc(sizeof(uart_setting_t));
 
-	uart_setting_t us;
-
-	if (!readConfUart(&us, numInstance)) {
-		return confUart(us.device, us.speed, us.databits, us.stopbits);
+	if (!readConfUart(us, numInstance)) {
+		return confUart(us->device, us->speed, us->databits, us->stopbits);
 	} else {
 		return defaultConfUart(NULL);
 	}

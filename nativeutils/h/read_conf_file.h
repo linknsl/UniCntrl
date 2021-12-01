@@ -34,19 +34,6 @@ typedef struct uart_setting {
 	int stopbits;
 } uart_setting_t;
 
-typedef struct mqtt_setting {
-	char *topic;
-	char *name;
-	char *host;
-	int port;
-	int keepalive;
-	int polling_time;
-	int number;
-	int fd;
-	int log;
-	void *fun_mess_clb;
-} mqtt_setting_t;
-
 typedef struct params {
 	char *param;
 	struct params *next;
@@ -57,7 +44,6 @@ typedef struct mqtt_config_read {
 	int polling_time;
 	char *sensor_name;
 	params_t *params;
-/*	struct mqtt_config_children *children;*/
 } mqtt_config_read_t;
 
 typedef struct mqtt_config {
@@ -67,7 +53,6 @@ typedef struct mqtt_config {
 	int keepalive;
 	void *fun_mess_clb;
 	char *topic;
-/*	mqtt_config_children_t *children;*/
 } mqtt_config_t;
 
 typedef struct usr_cfg {
@@ -76,10 +61,9 @@ typedef struct usr_cfg {
 	uart_setting_t *dev_cfg;
 } usr_cfg_t;
 
-int readConfMqtt(mqtt_setting_t *ms, int numInstance);
+int readGnrlMqtt(mqtt_config_t *ms, int version);
+int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id);
 int readConfUart(uart_setting_t *us, int numInstance);
-int readConfMqtt_new(mqtt_config_t *ms);
 int read_usr_uart_conf(usr_cfg_t *ms, int numInstance);
 int get_usr_param_cnf(mqtt_config_read_t *ms, char *param[]);
-int newconfig(void);
 #endif /* H_READ_CONF_FILE_H_ */
