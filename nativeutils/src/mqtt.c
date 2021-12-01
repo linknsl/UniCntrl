@@ -22,6 +22,12 @@ int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
 	return match;
 }
 
+/*int mqtt_gen_topic_topic(void *in, char *param, char *res) {
+	*res = malloc(sizeof(MAX_BUF));
+	sprintf(res, "%s/%s", (char*) in, param);
+	return 0;
+}*/
+
 void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const char *str) {
 	switch (level) {
 	case MOSQ_LOG_DEBUG:
@@ -34,9 +40,8 @@ void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const 
 	}
 }
 
-void mqtt_setup(mqtt_setting_t *ms) {
-	readConfMqtt(ms, numInstance);
-	char *host = ms->host;
+void mqtt_setup(mqtt_config_t *ms) {
+	char *host = ms->server;
 	int port = ms->port;
 	int keepalive = ms->keepalive;
 	bool clean_session = true;
@@ -51,8 +56,8 @@ void mqtt_setup(mqtt_setting_t *ms) {
 		mosquitto_message_callback_set(mosq, ms->fun_mess_clb);
 	}
 
-	if (ms->log != 0)
-		mosquitto_log_callback_set(mosq, mosq_log_callback);
+/*	if (ms->log != 0)
+		mosquitto_log_callback_set(mosq, mosq_log_callback);*/
 
 	if (mosquitto_connect(mosq, host, port, keepalive)) {
 		fprintf(stderr, "Unable to connect.\n");
@@ -64,8 +69,8 @@ void mqtt_setup(mqtt_setting_t *ms) {
 		exit(1);
 	}
 
-	setPollingTimeSht21(ms->polling_time);
-	setPollingTimeMhz19c(ms->polling_time);
+/*	setPollingTimeSht21(ms->polling_time);
+	setPollingTimeMhz19c(ms->polling_time);*/
 }
 
 int mqtt_gen_topic_and_sub(char *topic, char *sub_topic) {

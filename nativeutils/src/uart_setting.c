@@ -23,7 +23,7 @@ void Reconnect(bool status) {
 	if (cnt_wr_timeout > 5) {
 		cnt_wr_timeout = 0;
 #ifdef ARM
-		autoConfUart();
+		autoConfUart(0);
 #else
 		printf("Reconect \n");
 #endif
@@ -148,10 +148,11 @@ int defaultConfUart(char *device) {
 	return confUart(DEFAULT_DEVICE, 9600, 8, 1);
 }
 
-int autoConfUart(void) {
+int autoConfUart(int numInstance) {
+
 	uart_setting_t us;
 
-	if (!readConfUart(&us, 0)) {
+	if (!readConfUart(&us, numInstance)) {
 		return confUart(us.device, us.speed, us.databits, us.stopbits);
 	} else {
 		return defaultConfUart(NULL);

@@ -15,7 +15,7 @@
 bool set_Parity(int databits, int stopbits, int parity);
 int openDev(char *Dev);
 int confUart(char *device, int speed, int databits, int stopbits);
-int autoConfUart(void);
+int autoConfUart(int numInstance);
 int defaultConfUart(char *device);
 int getDescriptor(void);
 void closeUart(void);
