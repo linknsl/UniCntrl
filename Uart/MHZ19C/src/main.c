@@ -37,11 +37,12 @@ void mqtt_subscribe_init(char *topic) {
 
 void* read_sensor(void *param) {
 	int *id = (int*) param;
-	measurement_mhz19_t measurement;
 	int value_array[10];
-	usr_cfg_t ucfg;
-	read_usr_uart_conf(&ucfg, *id);
 	char *params[10];
+
+	usr_cfg_t ucfg;
+
+	read_usr_uart_conf(&ucfg, *id);
 	get_usr_param_cnf(ucfg.mqtt_read, params);
 
 #ifdef ARM
@@ -50,15 +51,13 @@ void* read_sensor(void *param) {
 #endif
 
 	devSensorFunc_t dSf;
-    osMemSet(&dSf, 0, sizeof(devSensorFunc_t));
 	getSensorFncMhz19c(&dSf);
 	ucfg.mqtt_general->fun_mess_clb = message_callback;
 	mqtt_setup(ucfg.mqtt_general);
 	mqtt_subscribe_init(ucfg.mqtt_general->topic);
+	dSf.setPollingTime(ucfg.mqtt_read->polling_time);
 	while (1) {
-		dSf.getMeasurement(&measurement);
-		value_array[0] = measurement.temperature;
-		value_array[1] = measurement.co2_ppm;
+		dSf.getMeasurement(value_array);
 		mqttResultPubInt(&ucfg, value_array);
 		usleep(100);
 	}

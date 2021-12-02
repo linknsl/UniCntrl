@@ -12,7 +12,7 @@ static int polling_time;
 pthread_mutex_t mutex_measurement;
 
 static void writeCommand(uint8_t cmd[], uint8_t *response);
-static int getMeasurement(measurement_mhz19_t *ms);
+static int getMeasurement(int *value_array);
 
 uint8_t getppm[] = { 0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t zerocalib[] = { 0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -35,10 +35,11 @@ static void setPollingTime(int pol_time) {
 }
 
 /* undocumented function */
-static int getStatus() {
-	measurement_mhz19_t m = getMeasurement();
-	return m.state;
-}
+/*static int getStatus() {
+ measurement_mhz19_t m;
+ getMeasurement(&m);
+ return m.state;
+ }*/
 
 void setAutoCalibration(bool autocalib) {
 	pthread_mutex_lock(&mutex_measurement);
@@ -52,7 +53,8 @@ void calibrateZero(void) {
 	pthread_mutex_unlock(&mutex_measurement);
 }
 
-static int getMeasurement(measurement_mhz19_t *ms) {
+static int getMeasurement(int *value_array) {
+	measurement_mhz19_t ms;
 	uint8_t response[RESPONSE_CNT];
 	memset(response, 0, RESPONSE_CNT);
 
@@ -61,12 +63,14 @@ static int getMeasurement(measurement_mhz19_t *ms) {
 	pthread_mutex_unlock(&mutex_measurement);
 
 	if (response[0] == 0xff && response[1] == 0x86 && (mhz19_checksum(response) == response[RESPONSE_CNT - 1])) {
-		ms->co2_ppm = response[2] * 256 + response[3];
-		ms->temperature = response[4] - 40;
-		ms->state = response[5];
+		ms.co2_ppm = response[2] * 256 + response[3];
+		ms.temperature = response[4] - 40;
+		ms.state = response[5];
 	} else {
-		ms->co2_ppm = ms->temperature = ms->state = -1;
+		ms.co2_ppm = ms.temperature = ms.state = -1;
 	}
+	value_array[0] = ms.temperature;
+	value_array[1] = ms.co2_ppm;
 	return SUCCESS;
 }
 

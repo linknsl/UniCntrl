@@ -44,6 +44,111 @@ int readConfUart(uart_setting_t *us, int numInstance) {
 	return (EXIT_SUCCESS);
 }
 
+int readConfI2C(i2c_setting_t *is, int numInstance) {
+
+	config_t cfg;
+	config_setting_t *setting;
+
+	is->device = (char*) malloc(SIZE_STRING);
+	is->name = (char*) malloc(SIZE_STRING);
+
+	config_init(&cfg);
+
+	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
+		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		config_destroy(&cfg);
+		return (EXIT_FAILURE);
+	}
+
+	setting = config_lookup(&cfg, CONF_I2C);
+	if (setting != NULL) {
+		config_setting_t *uart_set = config_setting_get_elem(setting, numInstance);
+
+		const char *device = NULL, *name = NULL;
+
+		if ((config_setting_lookup_string(uart_set, "device", &device)
+				&& config_setting_lookup_string(uart_set, "name", &name)
+				&& config_setting_lookup_int(uart_set, "mqtt_id", &is->mqtt_id)
+				&& config_setting_lookup_int(uart_set, "addr", &is->addr))) {
+			memcpy(is->device, device, strlen(device) + 1);
+			memcpy(is->name, name, strlen(name) + 1);
+		}
+	}
+
+	config_destroy(&cfg);
+	return (EXIT_SUCCESS);
+}
+
+int readConfOneW1(onew1_setting_t *os, int numInstance) {
+
+	config_t cfg;
+	config_setting_t *setting;
+
+	os->device = (char*) malloc(SIZE_STRING);
+	os->name = (char*) malloc(SIZE_STRING);
+
+	config_init(&cfg);
+
+	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
+		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		config_destroy(&cfg);
+		return (EXIT_FAILURE);
+	}
+
+	setting = config_lookup(&cfg, CONF_I2C);
+	if (setting != NULL) {
+		config_setting_t *uart_set = config_setting_get_elem(setting, numInstance);
+
+		const char *device = NULL, *name = NULL;
+
+		if ((config_setting_lookup_string(uart_set, "device", &device)
+				&& config_setting_lookup_string(uart_set, "name", &name)
+				&& config_setting_lookup_int(uart_set, "mqtt_id", &os->mqtt_id)
+				&& config_setting_lookup_int(uart_set, "addr", &os->addr))) {
+			memcpy(os->device, device, strlen(device) + 1);
+			memcpy(os->name, name, strlen(name) + 1);
+		}
+	}
+
+	config_destroy(&cfg);
+	return (EXIT_SUCCESS);
+}
+
+int readConfCAN(can_setting_t *cs, int numInstance) {
+
+	config_t cfg;
+	config_setting_t *setting;
+
+	cs->device = (char*) malloc(SIZE_STRING);
+	cs->name = (char*) malloc(SIZE_STRING);
+
+	config_init(&cfg);
+
+	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
+		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		config_destroy(&cfg);
+		return (EXIT_FAILURE);
+	}
+
+	setting = config_lookup(&cfg, CONF_CANS);
+	if (setting != NULL) {
+		config_setting_t *uart_set = config_setting_get_elem(setting, numInstance);
+
+		const char *device = NULL, *name = NULL;
+
+		if ((config_setting_lookup_string(uart_set, "device", &device)
+				&& config_setting_lookup_string(uart_set, "name", &name)
+				&& config_setting_lookup_int(uart_set, "mqtt_id", &cs->mqtt_id)
+				&& config_setting_lookup_int(uart_set, "addr", &cs->addr))) {
+			memcpy(cs->device, device, strlen(device) + 1);
+			memcpy(cs->name, name, strlen(name) + 1);
+		}
+	}
+
+	config_destroy(&cfg);
+	return (EXIT_SUCCESS);
+}
+
 int readGnrlMqtt(mqtt_config_t *ms, int version) {
 	config_t cfg;
 	config_setting_t *setting = NULL;
@@ -141,19 +246,52 @@ int get_usr_param_cnf(mqtt_config_read_t *ms, char *param[]) {
 	return 0;
 }
 
-int read_usr_uart_conf(usr_cfg_t *ms, int numInstance) {
+int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name, int numInstance) {
 
-	ms->dev_cfg = malloc(sizeof(uart_setting_t));
-	readConfUart(ms->dev_cfg, numInstance);
+	switch (block) {
+	case UARTS:
+		uc->dev_cfg = malloc(sizeof(uart_setting_t));
+		readConfUart(uc->dev_cfg, numInstance);
+		*id = ((uart_setting_t*) uc->dev_cfg)->mqtt_id;
+		name = ((uart_setting_t*) uc->dev_cfg)->name;
+		break;
+	case I2CS:
+		uc->dev_cfg = malloc(sizeof(i2c_setting_t));
+		readConfI2C(uc->dev_cfg, numInstance);
+		*id = ((i2c_setting_t*) uc->dev_cfg)->mqtt_id;
+		name = ((i2c_setting_t*) uc->dev_cfg)->name;
+		break;
+	case ONEW1S:
+		uc->dev_cfg = malloc(sizeof(onew1_setting_t));
+		readConfOneW1(uc->dev_cfg, numInstance);
+		*id = ((onew1_setting_t*) uc->dev_cfg)->mqtt_id;
+		name = ((onew1_setting_t*) uc->dev_cfg)->name;
+		break;
+	case CANS:
+		uc->dev_cfg = malloc(sizeof(can_setting_t));
+		readConfCAN(uc->dev_cfg, numInstance);
+		*id = ((can_setting_t*) uc->dev_cfg)->mqtt_id;
+		name = ((can_setting_t*) uc->dev_cfg)->name;
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
 
-	ms->mqtt_general = malloc(sizeof(mqtt_config_t));
-	readGnrlMqtt(ms->mqtt_general, VERSION_MQTT_GNRL);
+int read_usr_configure(usr_cfg_t *uc, int numInstance, eRead_configure block) {
+	int id;
+	char *name = NULL;
+	read_dev_configure(uc, block, &id, name, numInstance);
 
-	ms->mqtt_read = malloc(sizeof(mqtt_config_read_t));
-	readConfMqtt(ms->mqtt_read, ms->dev_cfg->mqtt_id);
+	uc->mqtt_general = malloc(sizeof(mqtt_config_t));
+	readGnrlMqtt(uc->mqtt_general, VERSION_MQTT_GNRL);
 
-	sprintf(ms->mqtt_general->topic, "%d/%d/%s/%s", ms->mqtt_general->number_board, numInstance, ms->dev_cfg->name,
-			ms->mqtt_read->sensor_name);
+	uc->mqtt_read = malloc(sizeof(mqtt_config_read_t));
+	readConfMqtt(uc->mqtt_read, id);
+
+	sprintf(uc->mqtt_general->topic, "%d/%d/%s/%s", uc->mqtt_general->number_board, numInstance, name,
+			uc->mqtt_read->sensor_name);
 
 	return (EXIT_SUCCESS);
 }

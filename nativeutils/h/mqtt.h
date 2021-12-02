@@ -16,6 +16,7 @@ int mqtt_send(char *msg, char *topic);
 int mqtt_sub(char *topic);
 int mqtt_gen_topic_and_sub(char *topic, char *sub_topic);
 int mqttResultPubInt(usr_cfg_t *ucfg, int *value_array);
+int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array);
 int mqtt_gen_topic_and_pub_float(char *topic, char *sub_topic, float value);
 int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value);
 int mqtt_set_topic_sub(void *obj, char *param, char *topic);

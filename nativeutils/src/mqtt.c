@@ -92,7 +92,7 @@ int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array) {
 	params_t *item;
 	int i;
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
-		mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+		mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param, value_array[i]);
 	}
 	return SUCCESS;
 }

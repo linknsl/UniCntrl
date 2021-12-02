@@ -18,50 +18,69 @@
 #include <common.h>
 #include <sht21.h>
 
+static void setPollingTime(int pol_time);
+static int getMeasurement(float *value_array);
+static float calc_temperature_sht21(float temp_raw);
+static float calc_humidity_sht21(float humidity_raw);
+static int sht21_init(int id);
+
 static int polling_time;
 
-void setPollingTimeSht21(int pol_time) {
+static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
 }
 
-float calc_temperature_sht21(float temp_raw) {
+static float calc_temperature_sht21(float temp_raw) {
 	float result = ((175.72 * (temp_raw / 65536)) - 46.85);
 	return result;
 }
 
-float calc_humidity_sht21(float humidity_raw) {
+static float calc_humidity_sht21(float humidity_raw) {
 	float result = (125 * (humidity_raw / 65536) - 6);
 	return result;
 }
 
-measurement_sht21_t getMeasurementSht21(void) {
+static int getMeasurement(float *value_array) {
 	measurement_sht21_t measurement;
 	sleep(polling_time);
-	measurement.humidity = calc_humidity_sht21(get_setting_float(HWMON_SHT21, SHT21_HUMIDITY));
 	measurement.temperature = calc_temperature_sht21(get_setting_float(HWMON_SHT21, SHT21_TEMP));
-	return measurement;
+	measurement.humidity = calc_humidity_sht21(get_setting_float(HWMON_SHT21, SHT21_HUMIDITY));
+	value_array[0] = measurement.temperature;
+	value_array[1] = measurement.humidity;
+	return SUCCESS;
 }
 
-int sht21_init(void) {
+static int sht21_init(int id) {
 	FILE *fp;
 	char path[MAX_BUF];
 	char start[MAX_BUF];
+	memset(start, 0, MAX_BUF);
+	memset(path, 0, MAX_BUF);
 	snprintf(start, sizeof start, "%s/%s", HWMON_SHT21, SHT21_HUMIDITY);
-	if (!access(path, F_OK)) {
+	if (access(start, F_OK)) {
 		snprintf(path, sizeof(path), HWMON_NEW_DEVICE);
 		if ((fp = fopen(path, "w")) == NULL) {
 			printf("file open failed\n");
 			return FAILURE;
 		}
-
 		rewind(fp);
 		fprintf(fp, "sht21 0x40\n");
 		fflush(fp);
 		fclose(fp);
 	}
 	if (!access(start, F_OK)) {
-		return FAILURE;
-	} else {
 		return SUCCESS;
+	} else {
+		return FAILURE;
 	}
+}
+
+int getSensorFncSht21(devSensorFunc_t *cfgFuncs) {
+	if (cfgFuncs == NULL) {
+		return -1;
+	}
+	cfgFuncs->getMeasurementFloat = getMeasurement;
+	cfgFuncs->setPollingTime = setPollingTime;
+	cfgFuncs->init = sht21_init;
+	return SUCCESS;
 }
