@@ -35,7 +35,7 @@ void* read_sensor(void *param) {
 	int *id = (int*) param;
 	float value_array[10];
 	usr_cfg_t ucfg;
-	read_usr_i2c_conf(&ucfg, *id);
+	read_usr_configure(&ucfg, *id,I2CS);
 	char *params[10];
 	get_usr_param_cnf(ucfg.mqtt_read, params);
 	devSensorFunc_t dSf;

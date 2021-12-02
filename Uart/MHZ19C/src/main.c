@@ -42,7 +42,7 @@ void* read_sensor(void *param) {
 
 	usr_cfg_t ucfg;
 
-	read_usr_uart_conf(&ucfg, *id);
+	read_usr_configure(&ucfg, *id,UARTS);
 	get_usr_param_cnf(ucfg.mqtt_read, params);
 
 #ifdef ARM

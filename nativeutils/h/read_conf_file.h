@@ -85,7 +85,9 @@ typedef struct usr_cfg {
 	mqtt_config_read_t *mqtt_read;
 	void *dev_cfg;
 } usr_cfg_t;
-int read_uart_conf(usr_cfg_t *uc, eRead_configure block, int *id, char *name, int numInstance);
+
+int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name, int numInstance);
+int read_usr_configure(usr_cfg_t *uc, int numInstance, eRead_configure block);
 int readGnrlMqtt(mqtt_config_t *ms, int version);
 int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id);
 int readConfUart(uart_setting_t *us, int numInstance);
