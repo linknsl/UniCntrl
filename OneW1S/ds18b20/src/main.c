@@ -8,22 +8,17 @@
  ============================================================================
  */
 
-#include <mhz19c.h>
-#include <uart_setting.h>
+#include <ds18b20.h>
 #include <common.h>
 
-char *subscribe[] = { "setCalibrateSpan", "setCalibrate" };
+char *subscribe[] = { "reset" };
 
 void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
 	int num = 0;
 
 	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
-		num = (eMhz19_calibrate) atoi(message->payload);
-		calibrateSpan(num);
-	}
-	if (mqtt_set_topic_sub(obj, subscribe[1], message->topic)) {
-		num = (eMhz19_calibrate) atoi(message->payload);
-		cntrlCalibrate(num);
+		num = atoi(message->payload);
+		printf("reset %d ", num);
 	}
 }
 
@@ -37,36 +32,36 @@ void mqtt_subscribe_init(char *topic) {
 
 void* read_sensor(void *param) {
 	int *id = (int*) param;
-	int value_array[10];
-	char *params[10];
 
+	float value_array;
 	usr_cfg_t ucfg;
-	read_usr_configure(&ucfg, *id,UARTS);
+	read_usr_configure(&ucfg, *id, ONEW1S );
+	char *params[1];
 	get_usr_param_cnf(ucfg.mqtt_read, params);
+	devSensorFunc_t dSf;
+	getSensorFncDs18b20(&dSf);
 
 #ifdef ARM
-	autoConfUart(*id) ;
+	if (dSf.init(*id) != 0) {
+		pthread_exit(SUCCESS);
+		exit(SUCCESS);
+	}
 #else
 #endif
-
-	devSensorFunc_t dSf;
-	getSensorFncMhz19c(&dSf);
 	ucfg.mqtt_general->fun_mess_clb = message_callback;
 	mqtt_setup(ucfg.mqtt_general);
 	mqtt_subscribe_init(ucfg.mqtt_general->topic);
 	dSf.setPollingTime(ucfg.mqtt_read->polling_time);
 	while (1) {
-		dSf.getMeasurement(value_array);
-		mqttResultPubInt(&ucfg, value_array);
+		dSf.getMeasurementFloat(&value_array);
+		mqttResultPubFloat(&ucfg, &value_array);
 		usleep(100);
 	}
-	closeUart();
 	pthread_exit(SUCCESS);
 	return SUCCESS;
 }
 
 void terminate(int param) {
-	closeUart();
 	exit(FAILURE);
 }
 

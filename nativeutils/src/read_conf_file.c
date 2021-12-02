@@ -253,25 +253,25 @@ int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name
 		uc->dev_cfg = malloc(sizeof(uart_setting_t));
 		readConfUart(uc->dev_cfg, numInstance);
 		*id = ((uart_setting_t*) uc->dev_cfg)->mqtt_id;
-		name = ((uart_setting_t*) uc->dev_cfg)->name;
+		memcpy(name, ((uart_setting_t*) uc->dev_cfg)->name, strlen(((uart_setting_t*) uc->dev_cfg)->name) + 1);
 		break;
 	case I2CS:
 		uc->dev_cfg = malloc(sizeof(i2c_setting_t));
 		readConfI2C(uc->dev_cfg, numInstance);
 		*id = ((i2c_setting_t*) uc->dev_cfg)->mqtt_id;
-		name = ((i2c_setting_t*) uc->dev_cfg)->name;
+		memcpy(name, ((i2c_setting_t*) uc->dev_cfg)->name, strlen(((i2c_setting_t*) uc->dev_cfg)->name) + 1);
 		break;
 	case ONEW1S:
 		uc->dev_cfg = malloc(sizeof(onew1_setting_t));
 		readConfOneW1(uc->dev_cfg, numInstance);
 		*id = ((onew1_setting_t*) uc->dev_cfg)->mqtt_id;
-		name = ((onew1_setting_t*) uc->dev_cfg)->name;
+		memcpy(name, ((onew1_setting_t*) uc->dev_cfg)->name, strlen(((onew1_setting_t*) uc->dev_cfg)->name) + 1);
 		break;
 	case CANS:
 		uc->dev_cfg = malloc(sizeof(can_setting_t));
 		readConfCAN(uc->dev_cfg, numInstance);
 		*id = ((can_setting_t*) uc->dev_cfg)->mqtt_id;
-		name = ((can_setting_t*) uc->dev_cfg)->name;
+		memcpy(name, ((can_setting_t*) uc->dev_cfg)->name, strlen(((can_setting_t*) uc->dev_cfg)->name) + 1);
 		break;
 	default:
 		break;
@@ -282,6 +282,7 @@ int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name
 int read_usr_configure(usr_cfg_t *uc, int numInstance, eRead_configure block) {
 	int id;
 	char *name = NULL;
+	name = (char*) malloc(SIZE_STRING);
 	read_dev_configure(uc, block, &id, name, numInstance);
 
 	uc->mqtt_general = malloc(sizeof(mqtt_config_t));
