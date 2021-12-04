@@ -47,16 +47,15 @@ static void setPollingTime(int pol_time) {
 }
 
 static int getMeasurement(int *value_array , mqtt_config_read_t *conf) {
-	value_array = malloc(conf->param_size*sizeof(int));
-	measurement_apds9300_t measurement;
+	measurement_apds9300_t ms;
 	sleep(polling_time);
 
-	measurement.in_illuminance = get_setting_int(root, APDS9300_ILLUMINANCE);
-	measurement.in_intensity0 = get_setting_int(root, APDS9300_INTENSITY0);
-	measurement.in_intensity1 = get_setting_int(root, APDS9300_INTENSITY1);
-	value_array[0] = measurement.in_illuminance;
-	value_array[1] = measurement.in_intensity0;
-	value_array[2] = measurement.in_intensity1;
+	ms.in_illuminance = get_setting_int(root, APDS9300_ILLUMINANCE);
+	ms.in_intensity0 = get_setting_int(root, APDS9300_INTENSITY0);
+	ms.in_intensity1 = get_setting_int(root, APDS9300_INTENSITY1);
+	value_array[0] = ms.in_illuminance;
+	value_array[1] = ms.in_intensity0;
+	value_array[2] = ms.in_intensity1;
 	return SUCCESS;
 }
 

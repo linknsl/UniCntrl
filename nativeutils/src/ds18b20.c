@@ -12,10 +12,6 @@
 #include <common.h>
 #include <ds18b20.h>
 
-static void setPollingTime(int pol_time);
-static int getMeasurement(float *value_array);
-static int ds18b20_init(init_conf_t *conf);
-
 static int polling_time;
 static char root[SIZE_LONG_STRING];
 
@@ -61,7 +57,7 @@ static float calc_temperature_parser(char *temp_raw) {
 	return calc_temperature((msb << 8) + lsb);
 }
 
-static int getMeasurement(float *value_array) {
+static int getMeasurement(float *value_array, mqtt_config_read_t *conf) {
 	measurement_ds18b20 measurement;
 	char buf[MAX_BUF];
 	memset(buf, 0, MAX_BUF);
