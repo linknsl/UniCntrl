@@ -19,10 +19,11 @@
 
 #define CONF_UART      "application.uarts.setting"
 #define CONF_I2C       "application.i2cs.setting"
-#define CONF_ONEW1S    "application.oneW1.setting"
+#define CONF_ONEW1S    "application.oneW1s.setting"
 #define CONF_CANS      "application.cans.setting"
 
 #define SIZE_STRING 64
+#define SIZE_PARAM 64
 #define SIZE_LONG_STRING 128
 
 typedef enum READ_CONFIGURE {
@@ -49,7 +50,7 @@ typedef struct onew1_setting {
 	char *device;
 	char *name;
 	int mqtt_id;
-	int addr;
+	char *addr;
 } onew1_setting_t;
 
 typedef struct can_setting {
@@ -69,6 +70,7 @@ typedef struct mqtt_config_read {
 	int polling_time;
 	char *sensor_name;
 	params_t *params;
+	int param_size;
 } mqtt_config_read_t;
 
 typedef struct mqtt_config {

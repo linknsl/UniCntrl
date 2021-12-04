@@ -62,14 +62,14 @@ int readConfI2C(i2c_setting_t *is, int numInstance) {
 
 	setting = config_lookup(&cfg, CONF_I2C);
 	if (setting != NULL) {
-		config_setting_t *uart_set = config_setting_get_elem(setting, numInstance);
+		config_setting_t *i2c_set = config_setting_get_elem(setting, numInstance);
 
 		const char *device = NULL, *name = NULL;
 
-		if ((config_setting_lookup_string(uart_set, "device", &device)
-				&& config_setting_lookup_string(uart_set, "name", &name)
-				&& config_setting_lookup_int(uart_set, "mqtt_id", &is->mqtt_id)
-				&& config_setting_lookup_int(uart_set, "addr", &is->addr))) {
+		if ((config_setting_lookup_string(i2c_set, "device", &device)
+				&& config_setting_lookup_string(i2c_set, "name", &name)
+				&& config_setting_lookup_int(i2c_set, "mqtt_id", &is->mqtt_id)
+				&& config_setting_lookup_int(i2c_set, "addr", &is->addr))) {
 			memcpy(is->device, device, strlen(device) + 1);
 			memcpy(is->name, name, strlen(name) + 1);
 		}
@@ -86,6 +86,7 @@ int readConfOneW1(onew1_setting_t *os, int numInstance) {
 
 	os->device = (char*) malloc(SIZE_STRING);
 	os->name = (char*) malloc(SIZE_STRING);
+	os->addr = (char*) malloc(SIZE_STRING);
 
 	config_init(&cfg);
 
@@ -95,18 +96,20 @@ int readConfOneW1(onew1_setting_t *os, int numInstance) {
 		return (EXIT_FAILURE);
 	}
 
-	setting = config_lookup(&cfg, CONF_I2C);
+	setting = config_lookup(&cfg, CONF_ONEW1S);
 	if (setting != NULL) {
-		config_setting_t *uart_set = config_setting_get_elem(setting, numInstance);
+		config_setting_t *one_set = config_setting_get_elem(setting, numInstance);
 
-		const char *device = NULL, *name = NULL;
+		const char *device = NULL, *name = NULL, *addr = NULL;
 
-		if ((config_setting_lookup_string(uart_set, "device", &device)
-				&& config_setting_lookup_string(uart_set, "name", &name)
-				&& config_setting_lookup_int(uart_set, "mqtt_id", &os->mqtt_id)
-				&& config_setting_lookup_int(uart_set, "addr", &os->addr))) {
+		if ((config_setting_lookup_string(one_set, "device", &device)
+				&& config_setting_lookup_string(one_set, "name", &name)
+				&& config_setting_lookup_int(one_set, "mqtt_id", &os->mqtt_id)
+				&& config_setting_lookup_string(one_set, "addr", &addr)))
+		{
 			memcpy(os->device, device, strlen(device) + 1);
 			memcpy(os->name, name, strlen(name) + 1);
+			memcpy(os->addr, addr, strlen(addr) + 1);
 		}
 	}
 
@@ -132,14 +135,14 @@ int readConfCAN(can_setting_t *cs, int numInstance) {
 
 	setting = config_lookup(&cfg, CONF_CANS);
 	if (setting != NULL) {
-		config_setting_t *uart_set = config_setting_get_elem(setting, numInstance);
+		config_setting_t *can_set = config_setting_get_elem(setting, numInstance);
 
 		const char *device = NULL, *name = NULL;
 
-		if ((config_setting_lookup_string(uart_set, "device", &device)
-				&& config_setting_lookup_string(uart_set, "name", &name)
-				&& config_setting_lookup_int(uart_set, "mqtt_id", &cs->mqtt_id)
-				&& config_setting_lookup_int(uart_set, "addr", &cs->addr))) {
+		if ((config_setting_lookup_string(can_set, "device", &device)
+				&& config_setting_lookup_string(can_set, "name", &name)
+				&& config_setting_lookup_int(can_set, "mqtt_id", &cs->mqtt_id)
+				&& config_setting_lookup_int(can_set, "addr", &cs->addr))) {
 			memcpy(cs->device, device, strlen(device) + 1);
 			memcpy(cs->name, name, strlen(name) + 1);
 		}
@@ -206,13 +209,15 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 		memcpy(msr->sensor_name, sensor, strlen(sensor) + 1);
 
 		params_t *params = NULL;
-		char *param = malloc(64);
+		char *param = malloc(SIZE_PARAM);
 		rc = 1, j = 1;
+
 		while (rc) {
 			const char *new_param = NULL;
-			sprintf(param, "param%d", j++);
+			sprintf(param, "param%d", j);
 			rc = config_setting_lookup_string(mqtt_read, param, &new_param);
 			if (rc) {
+				msr->param_size = j;
 				params_t *p = malloc(sizeof(params_t));
 				p->param = malloc(strlen(new_param) + 1);
 				memcpy(p->param, new_param, strlen(new_param) + 1);
@@ -227,6 +232,7 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 
 				if (!msr->params)
 					msr->params = p;
+				j++;
 			}
 		}
 	}
@@ -235,15 +241,16 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 	return (EXIT_SUCCESS);
 }
 
-int get_usr_param_cnf(mqtt_config_read_t *ms, char *param[]) {
+int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
 	params_t *p;
+	param = malloc(ms->param_size);
 	int i = 0;
 	for (p = ms->params; p; p = p->next) {
 		param[i] = malloc(SIZE_STRING);
 		memcpy(param[i], p->param, strlen(p->param) + 1);
 		i++;
 	}
-	return 0;
+	return SUCCESS;
 }
 
 int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name, int numInstance) {

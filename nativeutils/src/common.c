@@ -10,6 +10,31 @@
 #include <common.h>
 #include <stdlib.h>
 
+
+int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
+	char **params = NULL;
+
+	init_conf_t ic;
+	read_usr_configure(uc, *id, block);
+	get_usr_param_cnf(uc->mqtt_read, params);
+
+	ic.id = *id;
+	ic.dev_sett = uc->dev_cfg;
+
+#ifdef ARM
+	if (dSf->init(&ic) != 0) {
+		pthread_exit(SUCCESS);
+		exit(SUCCESS);
+	}
+#else
+#endif
+	uc->mqtt_general->fun_mess_clb = dSf->mqtt_clb;
+	mqtt_setup(uc->mqtt_general);
+	dSf->mqtt_init_sub(uc->mqtt_general->topic);
+	dSf->setPollingTime(uc->mqtt_read->polling_time);
+	return SUCCESS;
+}
+
 float get_setting_float(char *ifname, char *param) {
 	FILE *fp;
 	char buf[MAX_BUF];
@@ -31,12 +56,12 @@ float get_setting_float(char *ifname, char *param) {
 	return atoi(buf);
 }
 
-int get_setting_str(char *out, char *ifname, char *param) {
+int get_setting_str(char *out, char *ifname, char *addr, char *param) {
 	FILE *fp;
 	char path[MAX_BUF];
 	memset(path, 0, MAX_BUF);
 
-	sprintf(path, "%s/%s", ifname, param);
+	sprintf(path, "%s/%s/%s", ifname, addr, param);
 
 	if ((fp = fopen(path, "r")) == NULL) {
 		printf("cannot open device file\n");

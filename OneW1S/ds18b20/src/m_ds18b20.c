@@ -7,51 +7,20 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
-
-#include <sht21.h>
+#include <ds18b20.h>
 #include <common.h>
 
-
-char *subscribe[] = { "reset" };
-
-void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
-	int num = 0;
-
-	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
-		num = atoi(message->payload);
-		printf("reset %d ",num);
-	}
-}
-
-void mqtt_subscribe_init(char *topic) {
-	int i = 0;
-	char *mess;
-	for (mess = subscribe[i]; mess; i++, mess = subscribe[i]) {
-		mqtt_gen_topic_and_sub(topic, subscribe[i]);
-	}
-}
-
 void* read_sensor(void *param) {
-	int *id = (int*) param;
-	float value_array[10];
+	float value_array;
 	usr_cfg_t ucfg;
-	read_usr_configure(&ucfg, *id,I2CS);
-	char *params[10];
-	get_usr_param_cnf(ucfg.mqtt_read, params);
 	devSensorFunc_t dSf;
-	getSensorFncSht21(&dSf);
 
-#ifdef ARM
-	dSf.init(*id);
-#else
-#endif
-	ucfg.mqtt_general->fun_mess_clb = message_callback;
-	mqtt_setup(ucfg.mqtt_general);
-	mqtt_subscribe_init(ucfg.mqtt_general->topic);
-	dSf.setPollingTime(ucfg.mqtt_read->polling_time);
+	getSensorFncDs18b20(&dSf);
+	init(param, &ucfg, &dSf, ONEW1S);
+
 	while (1) {
-		dSf.getMeasurementFloat(value_array);
-		mqttResultPubFloat(&ucfg, value_array);
+		dSf.getMeasurementFloat(&value_array);
+		mqttResultPubFloat(&ucfg, &value_array);
 		usleep(100);
 	}
 	pthread_exit(SUCCESS);

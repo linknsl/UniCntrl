@@ -10,7 +10,7 @@
 
 #include <common.h>
 
-#define HWMON_DS18B20 "/sys/bus/w1/devices/28-0120271aab57/w1_slave"
+#define HWMON_DS18B20 "/sys/bus/w1/devices"
 #define DS18B20_TEMP "w1_slave"
 
 typedef struct measurement_ds18b20 {

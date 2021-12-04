@@ -10,7 +10,6 @@
 
 #include <read_conf_file.h>
 
-void mqtt_subscribe_init(char *topic);
 void mqtt_setup(mqtt_config_t *ms);
 int mqtt_send(char *msg, char *topic);
 int mqtt_sub(char *topic);

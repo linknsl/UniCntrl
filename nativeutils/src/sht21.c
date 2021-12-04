@@ -22,9 +22,28 @@ static void setPollingTime(int pol_time);
 static int getMeasurement(float *value_array);
 static float calc_temperature_sht21(float temp_raw);
 static float calc_humidity_sht21(float humidity_raw);
-static int sht21_init(int id);
+static int sht21_init(init_conf_t *conf);
 
 static int polling_time;
+
+#define SIZE_SUBSCRIBE_SHT21 1
+static char *subscribe[] = { "reset" };
+
+static void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
+	int num = 0;
+
+	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
+		num = atoi(message->payload);
+		printf("reset %d \n", num);
+	}
+}
+
+static void mqtt_subscribe_init(char *topic) {
+	int i;
+	for (i = 0; i < SIZE_SUBSCRIBE_SHT21; i++) {
+		mqtt_gen_topic_and_sub(topic, subscribe[i]);
+	}
+}
 
 static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
@@ -50,7 +69,7 @@ static int getMeasurement(float *value_array) {
 	return SUCCESS;
 }
 
-static int sht21_init(int id) {
+static int sht21_init(init_conf_t *conf) {
 	FILE *fp;
 	char path[MAX_BUF];
 	char start[MAX_BUF];
@@ -81,6 +100,8 @@ int getSensorFncSht21(devSensorFunc_t *cfgFuncs) {
 	}
 	cfgFuncs->getMeasurementFloat = getMeasurement;
 	cfgFuncs->setPollingTime = setPollingTime;
+	cfgFuncs->mqtt_init_sub = mqtt_subscribe_init;
+	cfgFuncs->mqtt_clb = message_callback;
 	cfgFuncs->init = sht21_init;
 	return SUCCESS;
 }
