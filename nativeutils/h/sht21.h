@@ -21,9 +21,6 @@ typedef struct measurement_sht21 {
 	float temperature;
 } measurement_sht21_t;
 
-typedef int (*FUNCP_GET_MESUREMENT)(int *value_array);
-typedef void (*FUNCP_SET_POLLING_TIME)(int pol_time);
-
 int getSensorFncSht21(devSensorFunc_t *cfgFuncs);
 
 #endif /* H_SHT21_H_ */

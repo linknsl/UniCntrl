@@ -10,7 +10,6 @@
 #include <common.h>
 #include <stdlib.h>
 
-
 int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
 	char **params = NULL;
 
@@ -32,6 +31,12 @@ int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
 	mqtt_setup(uc->mqtt_general);
 	dSf->mqtt_init_sub(uc->mqtt_general->topic);
 	dSf->setPollingTime(uc->mqtt_read->polling_time);
+	return SUCCESS;
+}
+
+int generate_root_i2c_string(char *out, char *root, char *device, char *addr, char *prefix) {
+	memset(out, 0, MAX_BUF);
+	sprintf(out, "%s/%s/device/%s/%s", root, device, addr, prefix);
 	return SUCCESS;
 }
 
