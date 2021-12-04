@@ -12,7 +12,8 @@
 
 #define HWMON_NEW_DEVICE "/sys/bus/i2c/devices/i2c-0/new_device"
 #define HWMON_DELETE_DEVICE "/sys/bus/i2c/devices/i2c-0/delete_device"
-#define HWMON_SHT21 "/sys/bus/i2c/devices/0-0040/hwmon/hwmon1"
+#define HWMON_SHT21 "/sys/class/i2c-dev"
+#define HWMON_PREFIX_SHT21 "hwmon/hwmon1"
 #define SHT21_TEMP "temp1_input"
 #define SHT21_HUMIDITY "humidity1_input"
 

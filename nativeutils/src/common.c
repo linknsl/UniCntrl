@@ -34,9 +34,20 @@ int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
 	return SUCCESS;
 }
 
+int addr_tochar(char *out, int addr) {
+	memset(out, 0, MAX_BUF);
+	sprintf(out, "0-00%x", addr);
+	return SUCCESS;
+}
 int generate_root_i2c_string(char *out, char *root, char *device, char *addr, char *prefix) {
 	memset(out, 0, MAX_BUF);
 	sprintf(out, "%s/%s/device/%s/%s", root, device, addr, prefix);
+	return SUCCESS;
+}
+
+int generate_root_ow1_string(char *out, char *root, char *addr) {
+	memset(out, 0, MAX_BUF);
+	sprintf(out, "%s/%s", root, addr);
 	return SUCCESS;
 }
 
@@ -61,12 +72,12 @@ float get_setting_float(char *ifname, char *param) {
 	return atoi(buf);
 }
 
-int get_setting_str(char *out, char *ifname, char *addr, char *param) {
+int get_setting_str(char *out, char *ifname, char *param) {
 	FILE *fp;
 	char path[MAX_BUF];
 	memset(path, 0, MAX_BUF);
 
-	sprintf(path, "%s/%s/%s", ifname, addr, param);
+	sprintf(path, "%s/%s", ifname, param);
 
 	if ((fp = fopen(path, "r")) == NULL) {
 		printf("cannot open device file\n");

@@ -42,8 +42,8 @@ typedef struct deinit_conf {
 	int id;
 } deinit_conf_t;
 
-typedef int (*FUNCP_GET_MESUREMENT_INT)(int *value_array);
-typedef int (*FUNCP_GET_MESUREMENT_FLOAT)(float *value_array);
+typedef int (*FUNCP_GET_MESUREMENT_INT)(int *value_array, mqtt_config_read_t *conf);
+typedef int (*FUNCP_GET_MESUREMENT_FLOAT)(float *value_array, mqtt_config_read_t *conf);
 typedef void (*FUNCP_SET_POLLING_TIME)(int pol_time);
 typedef void (*FUNCP_MQTT_CLB)(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message);
 typedef void (*FUNCP_MQTT_INIT_SUB)(char *topic);
@@ -61,6 +61,10 @@ typedef struct devSensorFunc {
 } devSensorFunc_t;
 
 float get_setting_float(char *ifname, char *param);
-int get_setting_str(char *out, char *ifname, char *addr, char *param);
+int get_setting_int(char *ifname, char *param);
+int get_setting_str(char *out, char *ifname, char *param);
 int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block);
+int generate_root_i2c_string(char *out, char *root, char *device, char *addr, char *prefix);
+int generate_root_ow1_string(char *out, char *root, char *addr);
+int addr_tochar(char *out, int addr);
 #endif /* H_COMMON_H_ */

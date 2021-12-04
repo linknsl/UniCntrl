@@ -19,7 +19,6 @@
 #include <apds9300.h>
 
 static void setPollingTime(int pol_time);
-static int getMeasurement(float *value_array);
 
 static int polling_time;
 static char root[SIZE_LONG_STRING];
@@ -47,42 +46,31 @@ static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
 }
 
-static int getMeasurement(float *value_array) {
+static int getMeasurement(int *value_array , mqtt_config_read_t *conf) {
+	value_array = malloc(conf->param_size*sizeof(int));
 	measurement_apds9300_t measurement;
 	sleep(polling_time);
 
-/*	measurement.temperature = calc_temperature_sht21(get_setting_float(HWMON_SHT21, SHT21_TEMP));
-	measurement.humidity = calc_humidity_sht21(get_setting_float(HWMON_SHT21, SHT21_HUMIDITY));
-	value_array[0] = measurement.temperature;
-	value_array[1] = measurement.humidity;*/
+	measurement.in_illuminance = get_setting_int(root, APDS9300_ILLUMINANCE);
+	measurement.in_intensity0 = get_setting_int(root, APDS9300_INTENSITY0);
+	measurement.in_intensity1 = get_setting_int(root, APDS9300_INTENSITY1);
+	value_array[0] = measurement.in_illuminance;
+	value_array[1] = measurement.in_intensity0;
+	value_array[2] = measurement.in_intensity1;
 	return SUCCESS;
 }
 
 static int apds9300_init(init_conf_t *conf) {
 	i2c_setting_t *is = conf->dev_sett;
-	FILE *fp;
-	char path[MAX_BUF];
-	char start[MAX_BUF];
-	memset(start, 0, MAX_BUF);
-	memset(path, 0, MAX_BUF);
-	generate_root_i2c_string(root,HWMON_ROOT_APDS9300,is->device,is->addr,HWMON_PREFIX_APDS9300);
-/*	snprintf(start, sizeof start, "%s/%s", HWMON_SHT21, SHT21_HUMIDITY);
-	if (access(start, F_OK)) {
-		snprintf(path, sizeof(path), HWMON_NEW_DEVICE);
-		if ((fp = fopen(path, "w")) == NULL) {
-			printf("file open failed\n");
-			return FAILURE;
-		}
-		rewind(fp);
-		fprintf(fp, "sht21 0x40\n");
-		fflush(fp);
-		fclose(fp);
-	}
-	if (!access(start, F_OK)) {
+	char out[MAX_BUF];
+	memset(out, 0, MAX_BUF);
+	addr_tochar(out, is->addr);
+	generate_root_i2c_string(root, HWMON_ROOT_APDS9300, is->name, out, HWMON_PREFIX_APDS9300);
+	if (!access(root, F_OK)) {
 		return SUCCESS;
 	} else {
 		return FAILURE;
-	}*/
+	}
 }
 
 int getSensorFncAPDS9300(devSensorFunc_t *cfgFuncs) {

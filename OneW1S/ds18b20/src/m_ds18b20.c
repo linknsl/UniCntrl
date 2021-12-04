@@ -11,16 +11,16 @@
 #include <common.h>
 
 void* read_sensor(void *param) {
-	float value_array;
+	float *value_array;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
 
 	getSensorFncDs18b20(&dSf);
 	init(param, &ucfg, &dSf, ONEW1S);
-
+	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(float));
 	while (1) {
-		dSf.getMeasurementFloat(&value_array);
-		mqttResultPubFloat(&ucfg, &value_array);
+		dSf.getMeasurementFloat(value_array, ucfg.mqtt_read);
+		mqttResultPubFloat(&ucfg, value_array);
 		usleep(100);
 	}
 	pthread_exit(SUCCESS);

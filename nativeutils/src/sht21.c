@@ -19,12 +19,12 @@
 #include <sht21.h>
 
 static void setPollingTime(int pol_time);
-static int getMeasurement(float *value_array);
 static float calc_temperature_sht21(float temp_raw);
 static float calc_humidity_sht21(float humidity_raw);
 static int sht21_init(init_conf_t *conf);
 
 static int polling_time;
+static char root[SIZE_LONG_STRING];
 
 #define SIZE_SUBSCRIBE_SHT21 1
 static char *subscribe[] = { "reset" };
@@ -59,11 +59,11 @@ static float calc_humidity_sht21(float humidity_raw) {
 	return result;
 }
 
-static int getMeasurement(float *value_array) {
+static int getMeasurement(float *value_array, mqtt_config_read_t *conf) {
 	measurement_sht21_t measurement;
 	sleep(polling_time);
-	measurement.temperature = calc_temperature_sht21(get_setting_float(HWMON_SHT21, SHT21_TEMP));
-	measurement.humidity = calc_humidity_sht21(get_setting_float(HWMON_SHT21, SHT21_HUMIDITY));
+	measurement.temperature = calc_temperature_sht21(get_setting_float(root, SHT21_TEMP));
+	measurement.humidity = calc_humidity_sht21(get_setting_float(root, SHT21_HUMIDITY));
 	value_array[0] = measurement.temperature;
 	value_array[1] = measurement.humidity;
 	return SUCCESS;
@@ -72,11 +72,15 @@ static int getMeasurement(float *value_array) {
 static int sht21_init(init_conf_t *conf) {
 	FILE *fp;
 	char path[MAX_BUF];
-	char start[MAX_BUF];
-	memset(start, 0, MAX_BUF);
 	memset(path, 0, MAX_BUF);
-	snprintf(start, sizeof start, "%s/%s", HWMON_SHT21, SHT21_HUMIDITY);
-	if (access(start, F_OK)) {
+
+	i2c_setting_t *is = conf->dev_sett;
+	char out[MAX_BUF];
+	memset(out, 0, MAX_BUF);
+	addr_tochar(out, is->addr);
+	generate_root_i2c_string(root, HWMON_SHT21, is->name, out, HWMON_PREFIX_SHT21);
+
+	if (access(root, F_OK)) {
 		snprintf(path, sizeof(path), HWMON_NEW_DEVICE);
 		if ((fp = fopen(path, "w")) == NULL) {
 			printf("file open failed\n");
@@ -87,7 +91,7 @@ static int sht21_init(init_conf_t *conf) {
 		fflush(fp);
 		fclose(fp);
 	}
-	if (!access(start, F_OK)) {
+	if (!access(root, F_OK)) {
 		return SUCCESS;
 	} else {
 		return FAILURE;

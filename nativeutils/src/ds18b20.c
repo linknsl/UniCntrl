@@ -17,7 +17,8 @@ static int getMeasurement(float *value_array);
 static int ds18b20_init(init_conf_t *conf);
 
 static int polling_time;
-static char addrG[SIZE_STRING];
+static char root[SIZE_LONG_STRING];
+
 /*Information datasheet*/
 uint16_t test_temperature_data[] = { 0x07D0, 0x0550, 0x0191, 0x00A2, 0x0008, 0x0000, 0xFFF8, 0xFF5E, 0xFE6F, 0xFC90 };
 float test_equels_data[] = { 125, 85, 25.0625, 10.125, 0.5, 0, -0.5, -10.125, -25.0625, -55 };
@@ -65,7 +66,7 @@ static int getMeasurement(float *value_array) {
 	char buf[MAX_BUF];
 	memset(buf, 0, MAX_BUF);
 	sleep(polling_time);
-	if (get_setting_str(buf, HWMON_DS18B20, addrG, DS18B20_TEMP) != 0) {
+	if (get_setting_str(buf, root, DS18B20_TEMP) != 0) {
 		return FAILURE;
 	}
 	measurement.temperature = calc_temperature_parser(buf);
@@ -74,13 +75,14 @@ static int getMeasurement(float *value_array) {
 }
 
 static int ds18b20_init(init_conf_t *conf) {
+
 	onew1_setting_t *os = conf->dev_sett;
-	memset(addrG, 0, SIZE_STRING);
-	memcpy(addrG, os->addr, strlen(os->addr) + 1);
-	if (!access(DS18B20_TEMP, F_OK)) {
-		return FAILURE;
-	} else {
+	generate_root_ow1_string(root, HWMON_DS18B20, os->addr);
+
+	if (!access(root, F_OK)) {
 		return SUCCESS;
+	} else {
+		return FAILURE;
 	}
 }
 

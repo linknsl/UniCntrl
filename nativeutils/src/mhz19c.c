@@ -8,17 +8,45 @@
 #include <uart_setting.h>
 #include <common.h>
 
+static void setAutoCalibration(bool autocalib);
+
 static int polling_time;
 pthread_mutex_t mutex_measurement;
 
 static void writeCommand(uint8_t cmd[], uint8_t *response);
-static int getMeasurement(int *value_array);
+static void calibrateZero(void);
+static void calibrateSpan(int ppm);
+static void cntrlCalibrate(eMhz19_calibrate key);
 
 uint8_t getppm[] = { 0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t zerocalib[] = { 0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t spancalib[] = { 0xff, 0x01, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t autocalib_on[] = { 0xff, 0x01, 0x79, 0xA0, 0x00, 0x00, 0x00, 0x00 };
 uint8_t autocalib_off[] = { 0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+#define SIZE_SUBSCRIBE_MHZ19C 2
+char *subscribe[] = { "setCalibrateSpan", "setCalibrate" };
+
+static void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
+	int num = 0;
+
+	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
+		num = (eMhz19_calibrate) atoi(message->payload);
+		calibrateSpan(num);
+	}
+	if (mqtt_set_topic_sub(obj, subscribe[1], message->topic)) {
+		num = (eMhz19_calibrate) atoi(message->payload);
+		cntrlCalibrate(num);
+	}
+}
+
+static void mqtt_subscribe_init(char *topic) {
+	int i;
+	for (i = 0; i < SIZE_SUBSCRIBE_MHZ19C; i++) {
+		mqtt_gen_topic_and_sub(topic, subscribe[i]);
+	}
+}
+
 
 static uint8_t mhz19_checksum(uint8_t com[]) {
 	int i;
@@ -34,26 +62,19 @@ static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
 }
 
-/* undocumented function */
-/*static int getStatus() {
- measurement_mhz19_t m;
- getMeasurement(&m);
- return m.state;
- }*/
-
-void setAutoCalibration(bool autocalib) {
+static void setAutoCalibration(bool autocalib) {
 	pthread_mutex_lock(&mutex_measurement);
 	writeCommand(autocalib ? autocalib_on : autocalib_off, NULL);
 	pthread_mutex_unlock(&mutex_measurement);
 }
 
-void calibrateZero(void) {
+static void calibrateZero(void) {
 	pthread_mutex_lock(&mutex_measurement);
 	writeCommand(zerocalib, NULL);
 	pthread_mutex_unlock(&mutex_measurement);
 }
 
-static int getMeasurement(int *value_array) {
+static int getMeasurement(int *value_array , mqtt_config_read_t *conf) {
 	measurement_mhz19_t ms;
 	uint8_t response[RESPONSE_CNT];
 	memset(response, 0, RESPONSE_CNT);
@@ -74,7 +95,7 @@ static int getMeasurement(int *value_array) {
 	return SUCCESS;
 }
 
-void calibrateSpan(int ppm) {
+static void calibrateSpan(int ppm) {
 	int i;
 	if (ppm < 1000)
 		return;
@@ -88,7 +109,7 @@ void calibrateSpan(int ppm) {
 	writeCommand(cmd, NULL);
 }
 
-void cntrlCalibrate(eMhz19_calibrate key) {
+static void cntrlCalibrate(eMhz19_calibrate key) {
 
 	switch (key) {
 	case ZERO:
@@ -134,9 +155,18 @@ static void writeCommand(uint8_t cmd[], uint8_t *response) {
 				Reconnect(false);
 				printf("Exit timeout \n");
 				break;
+
 			}
 
 		} while (nread < 9);
+	}
+}
+
+static int mhz19c_init(init_conf_t *conf) {
+	if (!autoConfUart(conf->id)) {
+		return SUCCESS;
+	} else {
+		return FAILURE;
 	}
 }
 
@@ -146,6 +176,8 @@ int getSensorFncMhz19c(devSensorFunc_t *cfgFuncs) {
 	}
 	cfgFuncs->getMeasurement = getMeasurement;
 	cfgFuncs->setPollingTime = setPollingTime;
-
+	cfgFuncs->mqtt_init_sub = mqtt_subscribe_init;
+	cfgFuncs->mqtt_clb = message_callback;
+	cfgFuncs->init = mhz19c_init;
 	return SUCCESS;
 }

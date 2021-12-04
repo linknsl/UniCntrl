@@ -30,10 +30,6 @@ typedef enum MHZ19_CALIBRATE {
 } eMhz19_calibrate;
 
 
-void calibrateSpan(int ppm);
-void cntrlCalibrate(eMhz19_calibrate key);
-void calibrateZero(void);
-void setAutoCalibration( bool autocalib);
 int getSensorFncMhz19c(devSensorFunc_t *cfgFuncs);
 
 #endif /* MHZ19C_H_ */
