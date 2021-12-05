@@ -25,6 +25,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
 #define MAX_BUF 128
 
 #define ERROR_CREATE_THREAD -11
@@ -36,11 +40,27 @@
 typedef struct init_conf {
 	int id;
 	void *dev_sett;
+	void *dev_func;
 } init_conf_t;
 
 typedef struct deinit_conf {
 	int id;
 } deinit_conf_t;
+
+typedef int (*FUNCP_GET_DESCRIPTOR)(void);
+typedef int (*FUNCP_GET_OPEN_DEVICE)(char *device);
+typedef void (*FUNCP_GET_CLOSE_DEVICE)(void);
+typedef int (*FUNCP_SET_CONF_DEVICE)(char *device, int id, int id_flag);
+typedef int (*FUNCP_SET_AUTO_CONF_DEVICE)(int numInstance);
+
+typedef struct devFunc {
+	int fd_dev;
+	FUNCP_GET_DESCRIPTOR getDescriptor;
+	FUNCP_GET_OPEN_DEVICE openDev;
+	FUNCP_GET_CLOSE_DEVICE closeDev;
+	FUNCP_SET_CONF_DEVICE confDev;
+	FUNCP_SET_AUTO_CONF_DEVICE autoConfDev;
+} devFunc_t;
 
 typedef int (*FUNCP_GET_MESUREMENT_INT)(int *value_array, mqtt_config_read_t *conf);
 typedef int (*FUNCP_GET_MESUREMENT_FLOAT)(float *value_array, mqtt_config_read_t *conf);
@@ -58,7 +78,11 @@ typedef struct devSensorFunc {
 	FUNCP_MQTT_CLB mqtt_clb;
 	FUNCP_SET_INIT init;
 	FUNCP_SET_INIT deinit;
+	devFunc_t devFunc;
 } devSensorFunc_t;
+
+
+
 
 float get_setting_float(char *ifname, char *param);
 int get_setting_int(char *ifname, char *param);

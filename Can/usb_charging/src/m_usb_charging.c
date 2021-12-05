@@ -7,15 +7,18 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
-#include <apds9300.h>
+#include <can_setting.h>
+#include <usb_charging.h>
 #include <common.h>
 
 void* read_sensor(void *param) {
 	int *value_array = NULL;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
-
-	getSensorFncAPDS9300(&dSf);
+	devFunc_t df_can;
+	getFncCan(&df_can);
+	dSf.devFunc = df_can;
+	getSensorFncUsbCharging(&dSf);
 	init(param, &ucfg, &dSf, CANS);
 	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(int));
 	while (1) {

@@ -10,7 +10,7 @@
 
 #include <mhz19c.h>
 
-#define DEFAULT_DEVICE "/dev/ttyUSB0"
+#define DEFAULT_DEVICE "can0"
 
 bool set_Parity(int databits, int stopbits, int parity);
 int openDev(char *Dev);
