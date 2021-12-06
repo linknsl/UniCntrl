@@ -15,12 +15,14 @@ void* read_sensor(void *param) {
 	float *value_array;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
+	init_conf_t ic;
+	ic.id =0;
 
 	getSensorFncSht21(&dSf);
 	init(param, &ucfg, &dSf, I2CS);
 	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(float));
 	while (1) {
-		dSf.getMeasurementFloat(value_array, ucfg.mqtt_read);
+		dSf.getMeasurementFloat(value_array, &ic);
 		mqttResultPubFloat(&ucfg, value_array);
 		usleep(100);
 	}
