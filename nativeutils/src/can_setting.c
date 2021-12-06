@@ -45,20 +45,24 @@ static int openDevCan(char *device) {
 		return 0;
 }
 
-static int confCan(char *device, int id, int id_flag) {
+
+static int confCan(init_conf_t *conf) {
+	can_setting_t *cs = conf->dev_sett;
+	int id_flag =0;
+
 	struct can_filter rfilter[1];
-	openDevCan(device);
+	openDevCan(cs->device);
 
 	if (fd_can > 0) {
 		if (id_flag) {
 			/* define the filter rules */
-			rfilter[0].can_id = id;
+			rfilter[0].can_id = 0;
 			rfilter[0].can_mask = CAN_SFF_MASK;
 			/* Set the filter rules */
 			setsockopt(fd_can, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
 		}
 	} else {
-		fprintf(stderr, "Error opening %s: %s\n", device, strerror(errno));
+		fprintf(stderr, "Error opening %s: %s\n", cs->device, strerror(errno));
 		exit(1);
 	}
 
@@ -66,16 +70,21 @@ static int confCan(char *device, int id, int id_flag) {
 }
 
 static int defaultConfCan(char *device) {
-	return confCan(DEFAULT_DEVICE_CAN, 0, 0);
+	init_conf_t conf;
+	can_setting_t cs;
+	cs.device = malloc(strlen(DEFAULT_DEVICE_CAN) + 1);
+	memcpy(cs.device, DEFAULT_DEVICE_CAN, strlen(DEFAULT_DEVICE_CAN) + 1);
+	conf.dev_sett = &cs;
+	return confCan(&conf);
 }
 
 static int autoConfCan(int numInstance) {
-	can_setting_t *cs;
-	cs = NULL;
-	cs = malloc(sizeof(uart_setting_t));
+	init_conf_t conf;
+	can_setting_t cs;
 
-	if (!readConfCAN(cs, numInstance)) {
-		return confCan(cs->device, numInstance, 0);
+	if (!readConfCAN(&cs, numInstance)) {
+		conf.dev_sett = &cs;
+		return confCan(&conf);
 	} else {
 		return defaultConfCan(NULL);
 	}

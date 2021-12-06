@@ -105,8 +105,7 @@ int readConfOneW1(onew1_setting_t *os, int numInstance) {
 		if ((config_setting_lookup_string(one_set, "device", &device)
 				&& config_setting_lookup_string(one_set, "name", &name)
 				&& config_setting_lookup_int(one_set, "mqtt_id", &os->mqtt_id)
-				&& config_setting_lookup_string(one_set, "addr", &addr)))
-		{
+				&& config_setting_lookup_string(one_set, "addr", &addr))) {
 			memcpy(os->device, device, strlen(device) + 1);
 			memcpy(os->name, name, strlen(name) + 1);
 			memcpy(os->addr, addr, strlen(addr) + 1);
@@ -242,11 +241,13 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 }
 
 int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
-	params_t *p;
-	param = malloc(ms->param_size);
 	int i = 0;
+	params_t *p;
+	param = malloc(ms->param_size * SIZE_PARAM);
+	memset(param, 0, ms->param_size * SIZE_PARAM);
 	for (p = ms->params; p; p = p->next) {
-		param[i] = malloc(SIZE_STRING);
+		param[i] = malloc(SIZE_PARAM);
+		memset(param[i], 0, SIZE_PARAM);
 		memcpy(param[i], p->param, strlen(p->param) + 1);
 		i++;
 	}

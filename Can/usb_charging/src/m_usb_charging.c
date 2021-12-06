@@ -11,19 +11,32 @@
 #include <usb_charging.h>
 #include <common.h>
 
+/*"usb_current[3]","usb_voltage[3]" */
+#define PARAM_FLOAT_USB_CHARGING_SIZE 6
+/* "soft_id","hard_id","uniq_id","usb1_mistake","usb2_mistake","usb3_mistake","total_mistake","temperature"*/
+#define PARAM_INT_USB_CHARGING_SIZE 8
+
 void* read_sensor(void *param) {
-	int *value_array = NULL;
+	int *value_array_int = malloc((PARAM_INT_USB_CHARGING_SIZE) * sizeof(int));
+	float *value_array_float = malloc((PARAM_FLOAT_USB_CHARGING_SIZE) * sizeof(float));
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
 	devFunc_t df_can;
+	init_conf_t ic;
+	ic.id =0;
+
 	getFncCan(&df_can);
-	dSf.devFunc = df_can;
+	dSf.devFunc = &df_can;
+
 	getSensorFncUsbCharging(&dSf);
 	init(param, &ucfg, &dSf, CANS);
-	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(int));
+
 	while (1) {
-		dSf.getMeasurement(value_array, ucfg.mqtt_read);
-		mqttResultPubInt(&ucfg, value_array);
+		dSf.getMeasurement(value_array_int, &ic);
+		mqttResultPubInt(&ucfg, value_array_int);
+
+		dSf.getMeasurementFloat(value_array_float, &ic);
+		mqttResultPubFloat(&ucfg, value_array_float);
 		usleep(100);
 	}
 	pthread_exit(SUCCESS);

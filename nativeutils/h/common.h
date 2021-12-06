@@ -50,8 +50,9 @@ typedef struct deinit_conf {
 typedef int (*FUNCP_GET_DESCRIPTOR)(void);
 typedef int (*FUNCP_GET_OPEN_DEVICE)(char *device);
 typedef void (*FUNCP_GET_CLOSE_DEVICE)(void);
-typedef int (*FUNCP_SET_CONF_DEVICE)(char *device, int id, int id_flag);
+typedef int (*FUNCP_SET_CONF_DEVICE)(init_conf_t *conf);
 typedef int (*FUNCP_SET_AUTO_CONF_DEVICE)(int numInstance);
+typedef void (*FUNCP_RECCONECT)(bool status);
 
 typedef struct devFunc {
 	int fd_dev;
@@ -60,10 +61,11 @@ typedef struct devFunc {
 	FUNCP_GET_CLOSE_DEVICE closeDev;
 	FUNCP_SET_CONF_DEVICE confDev;
 	FUNCP_SET_AUTO_CONF_DEVICE autoConfDev;
+	FUNCP_RECCONECT recconect;
 } devFunc_t;
 
-typedef int (*FUNCP_GET_MESUREMENT_INT)(int *value_array, mqtt_config_read_t *conf);
-typedef int (*FUNCP_GET_MESUREMENT_FLOAT)(float *value_array, mqtt_config_read_t *conf);
+typedef int (*FUNCP_GET_MESUREMENT_INT)(int *value_array, init_conf_t *conf);
+typedef int (*FUNCP_GET_MESUREMENT_FLOAT)(float *value_array, init_conf_t *conf);
 typedef void (*FUNCP_SET_POLLING_TIME)(int pol_time);
 typedef void (*FUNCP_MQTT_CLB)(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message);
 typedef void (*FUNCP_MQTT_INIT_SUB)(char *topic);
@@ -78,11 +80,9 @@ typedef struct devSensorFunc {
 	FUNCP_MQTT_CLB mqtt_clb;
 	FUNCP_SET_INIT init;
 	FUNCP_SET_INIT deinit;
-	devFunc_t devFunc;
+	devFunc_t *devFunc;
+	pthread_mutex_t *mtx;
 } devSensorFunc_t;
-
-
-
 
 float get_setting_float(char *ifname, char *param);
 int get_setting_int(char *ifname, char *param);

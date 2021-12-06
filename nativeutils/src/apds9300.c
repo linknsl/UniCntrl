@@ -46,7 +46,7 @@ static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
 }
 
-static int getMeasurement(int *value_array , mqtt_config_read_t *conf) {
+static int getMeasurement(int *value_array , init_conf_t *conf) {
 	measurement_apds9300_t ms;
 	sleep(polling_time);
 

@@ -19,6 +19,7 @@ int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
 
 	ic.id = *id;
 	ic.dev_sett = uc->dev_cfg;
+	ic.dev_func = dSf;
 
 #ifdef ARM
 	if (dSf->init(&ic) != 0) {

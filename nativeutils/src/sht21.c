@@ -59,7 +59,7 @@ static float calc_humidity_sht21(float humidity_raw) {
 	return result;
 }
 
-static int getMeasurement(float *value_array, mqtt_config_read_t *conf) {
+static int getMeasurement(float *value_array, init_conf_t *conf) {
 	measurement_sht21_t measurement;
 	sleep(polling_time);
 	measurement.temperature = calc_temperature_sht21(get_setting_float(root, SHT21_TEMP));

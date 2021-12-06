@@ -7,14 +7,21 @@
 #include <uart_setting.h>
 #include <common.h>
 
-int fd_uart = -1;
-int cnt_wr_timeout = 0;
+static int fd_uart = -1;
+static int cnt_wr_timeout = 0;
 
-int getDescriptor(void) {
+static int speed_arr[] =
+		{ B921600, B460800, B230400, B115200, B57600, B38400, B19200, B9600, B4800, B2400, B1200, B300, };
+static int name_arr[] = { 921600, 460800, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200, 300, };
+
+static int autoConfUart(int numInstance);
+static int confUart(init_conf_t *conf);
+
+static int getDescriptor(void) {
 	return fd_uart;
 }
 
-void Reconnect(bool status) {
+static void Reconnect(bool status) {
 	if (status) {
 		cnt_wr_timeout = 0;
 	} else {
@@ -30,15 +37,12 @@ void Reconnect(bool status) {
 	}
 }
 
-void closeUart(void) {
+static void closeUart(void) {
 	if (fd_uart > 0)
 		close(fd_uart);
 }
 
-int speed_arr[] = { B921600, B460800, B230400, B115200, B57600, B38400, B19200, B9600, B4800, B2400, B1200, B300, };
-int name_arr[] = { 921600, 460800, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200, 300, };
-
-int set_speed(int speed) {
+static int set_speed(int speed) {
 	int i;
 	int status;
 	struct termios Opt;
@@ -63,7 +67,7 @@ int set_speed(int speed) {
 	return SUCCESS;
 }
 
-bool set_Parity(int databits, int stopbits, int parity) {
+static bool set_Parity(int databits, int stopbits, int parity) {
 	struct termios options;
 	if (tcgetattr(fd_uart, &options) != 0) {
 		perror("SetupSerial 1");
@@ -135,7 +139,7 @@ bool set_Parity(int databits, int stopbits, int parity) {
 	return (true);
 }
 
-int openDev(char *Dev) {
+static int openDev(char *Dev) {
 	if (fd_uart > 0) {
 		printf("Reconect... Old descr %d \n", fd_uart);
 		close(fd_uart);
@@ -150,38 +154,62 @@ int openDev(char *Dev) {
 		return 0;
 }
 
-int defaultConfUart(char *device) {
-	return confUart(DEFAULT_DEVICE, 9600, 8, 1);
-}
+static int confUart(init_conf_t *conf) {
+	uart_setting_t *us = conf->dev_sett;
 
-int autoConfUart(int numInstance) {
-	uart_setting_t *us;
-	us = NULL;
-	us = malloc(sizeof(uart_setting_t));
-
-	if (!readConfUart(us, numInstance)) {
-		return confUart(us->device, us->speed, us->databits, us->stopbits);
-	} else {
-		return defaultConfUart(NULL);
-	}
-}
-
-int confUart(char *device, int speed, int databits, int stopbits) {
-
-	openDev(device);
+	openDev(us->device);
 
 	if (fd_uart > 0) {
-		set_speed(9600);
+		set_speed(us->speed);
 	} else {
-		fprintf(stderr, "Error opening %s: %s\n", device, strerror(errno));
+		fprintf(stderr, "Error opening %s: %s\n", us->device, strerror(errno));
 		exit(1);
 	}
 
-	if (set_Parity(databits, stopbits, 'N') == false) {
+	if (set_Parity(us->databits, us->stopbits, 'N') == false) {
 		fprintf(stderr, "Set Parity Error\n");
 		close(fd_uart);
 		exit(1);
 	}
+	return SUCCESS;
+}
+
+static int defaultConfUart(char *device) {
+	init_conf_t conf;
+	uart_setting_t us;
+	us.speed = 9600;
+	us.databits = 8;
+	us.stopbits = 1;
+	us.device = malloc(strlen(DEFAULT_DEVICE) + 1);
+	memcpy(&us.device, DEFAULT_DEVICE, strlen(DEFAULT_DEVICE) + 1);
+	conf.dev_sett = &us;
+	return confUart(&conf);
+}
+
+static int autoConfUart(int numInstance) {
+	init_conf_t conf;
+	uart_setting_t us;
+
+	if (!readConfUart(&us, numInstance)) {
+		conf.dev_sett = &us;
+		return confUart(&conf);
+	} else {
+		return defaultConfUart(NULL);
+	}
+
+}
+
+int getFncUart(devFunc_t *cfgFuncs) {
+	if (cfgFuncs == NULL) {
+		return -1;
+	}
+	cfgFuncs->getDescriptor = getDescriptor;
+	cfgFuncs->openDev = openDev;
+	cfgFuncs->closeDev = closeUart;
+	cfgFuncs->autoConfDev = autoConfUart;
+	cfgFuncs->recconect = Reconnect;
+	cfgFuncs->confDev = confUart;
+	cfgFuncs->fd_dev = fd_uart;
 	return SUCCESS;
 }
 

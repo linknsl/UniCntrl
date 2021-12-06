@@ -23,7 +23,7 @@
 #define CONF_CANS      "application.cans.setting"
 
 #define SIZE_STRING 64
-#define SIZE_PARAM 64
+#define SIZE_PARAM 32
 #define SIZE_LONG_STRING 128
 
 typedef enum READ_CONFIGURE {

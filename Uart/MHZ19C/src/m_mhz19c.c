@@ -16,22 +16,28 @@ void* read_sensor(void *param) {
 	int *value_array = NULL;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
+	devFunc_t df_uart;
+	init_conf_t ic;
+	ic.id =0;
+
+	getFncUart(&df_uart);
+	dSf.devFunc = &df_uart;
+
 	getSensorFncMhz19c(&dSf);
 	init(param, &ucfg, &dSf, UARTS);
 	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(int));
 	while (1) {
-		dSf.getMeasurement(value_array, ucfg.mqtt_read);
+		dSf.getMeasurement(value_array, &ic);
 		mqttResultPubInt(&ucfg, value_array);
 		usleep(100);
 	}
-	closeUart();
+	df_uart.closeDev();
 
 	pthread_exit(SUCCESS);
 	return SUCCESS;
 }
 
 void terminate(int param) {
-	closeUart();
 	exit(FAILURE);
 }
 

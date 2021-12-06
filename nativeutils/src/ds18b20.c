@@ -57,7 +57,7 @@ static float calc_temperature_parser(char *temp_raw) {
 	return calc_temperature((msb << 8) + lsb);
 }
 
-static int getMeasurement(float *value_array, mqtt_config_read_t *conf) {
+static int getMeasurement(float *value_array, init_conf_t *conf) {
 	measurement_ds18b20 measurement;
 	char buf[MAX_BUF];
 	memset(buf, 0, MAX_BUF);

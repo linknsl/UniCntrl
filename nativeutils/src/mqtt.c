@@ -105,6 +105,23 @@ int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value) {
 	}
 }
 
+int mqtt_gen_topic_and_pub_hex(char *topic, char *sub_topic, int value) {
+	int snd;
+	char message[SIZE_STRING];
+	char fulltopic[SIZE_LONG_STRING];
+
+	sprintf(fulltopic, "%s/%s", topic, sub_topic);
+	sprintf(message, "0x%x", value);
+
+	snd = mqtt_send(message, fulltopic);
+	if (snd != 0) {
+		fprintf(stderr, "mqtt_send error: %i\n", snd);
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
 int mqtt_gen_topic_and_pub_float(char *topic, char *sub_topic, float value) {
 	int snd;
 	char message[SIZE_STRING];

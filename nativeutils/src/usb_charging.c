@@ -12,17 +12,33 @@ static int polling_time;
 static devFunc_t *df_can;
 static pthread_mutex_t mutex_measurement;
 
-#define SIZE_SUBSCRIBE_USBCHARGING 2
-static char *subscribe[] = { "setCalibrateSpan", "setCalibrate" };
+#define SIZE_SUBSCRIBE_USBCHARGING 1
+static char *subscribe[] = { "getIdUsbcharging" };
 
-static void readCan(uint8_t cmd[], uint8_t *response);
+static int readCan(uint16_t cmd, uint8_t *response);
+static int getMeasurementId(int *value_array, init_conf_t *conf);
 
 static void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
-	int num = 0;
-
+	eUsbCharging num = 0;
+	int value_array_int[3];
+	init_conf_t conf;
+	conf.id = 0;
 	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
-	}
-	if (mqtt_set_topic_sub(obj, subscribe[1], message->topic)) {
+		num = (eUsbCharging) atoi(message->payload);
+		getMeasurementId(value_array_int, &conf);
+		switch (num) {
+			case SOFT_ID:
+				mqtt_gen_topic_and_pub_int(obj,subscribe[0],value_array_int[0]);
+				break;
+			case HARD_ID:
+				mqtt_gen_topic_and_pub_int(obj,subscribe[0],value_array_int[0]);
+				break;
+			case UNIQ_ID:
+				mqtt_gen_topic_and_pub_hex(obj,subscribe[0],value_array_int[2]);
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -37,51 +53,129 @@ static void setPollingTime(int pol_time) {
 	polling_time = pol_time;
 }
 
+static int getSoftId(uint8_t *data) {
+	return ((data[1] << 8) & 0xff) | data[0];
+}
 
-static int getMeasurement(int *value_array , mqtt_config_read_t *conf) {
-	measurement_usb_chrg_t muc;
-	uint8_t response[128];
-	memset(response, 0, 128);
+static int getHardId(uint8_t *data) {
+	return ((data[3] << 8) & 0xff) | data[2];
+}
 
-	pthread_mutex_lock(&mutex_measurement);
-	readCan(NULL, response);
-	pthread_mutex_unlock(&mutex_measurement);
+static int getUniqId(uint8_t *data) {
+	return (data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];
+}
 
-/*	if (response[0] == 0xff && response[1] == 0x86 && (mhz19_checksum(response) == response[RESPONSE_CNT - 1])) {
-		ms.co2_ppm = response[2] * 256 + response[3];
-		ms.temperature = response[4] - 40;
-		ms.state = response[5];
-	} else {
-		ms.co2_ppm = ms.temperature = ms.state = -1;
-	}*/
-	value_array[0] = muc.soft_id;
-	value_array[1] = muc.hard_id;
-	value_array[2] = muc.uniq_id;
-	value_array[3] = muc.usb_voltage[0];
-	value_array[4] = muc.usb_voltage[1];
-	value_array[5] = muc.usb_voltage[2];
-	value_array[6] = muc.usb_current[0];
-	value_array[7] = muc.usb_current[1];
-	value_array[8] = muc.usb_current[2];
-	value_array[9] = muc.usb_mistake[0];
-	value_array[10] = muc.usb_mistake[1];
-	value_array[11] = muc.usb_mistake[2];
-	value_array[12] = muc.total_mistake;
-	value_array[13] = muc.temperature;
+static int getMeasurementId(int *value_array, init_conf_t *conf) {
+	id_usb_chrg_t iuc;
+	uint8_t responseId[RESPONSE_CNT_UCH];
+
+	memset(&iuc, 0, sizeof(id_usb_chrg_t));
+
+	readCan(BYTE_ID + conf->id, responseId);
+
+	iuc.soft_id = getSoftId(&responseId[0]);
+	iuc.hard_id = getHardId(&responseId[2]);
+	iuc.uniq_id = getUniqId(&responseId[4]);
+
+	value_array[0] = iuc.soft_id;
+	value_array[1] = iuc.hard_id;
+	value_array[2] = iuc.uniq_id;
+
 	return SUCCESS;
 }
 
-static void readCan(uint8_t cmd[], uint8_t *response) {
+static int getVoltage(float *out, uint8_t *data) {
+	int i = 0;
+	for (i = 0; i < 3; i++) {
+		out[i] = data[i] * 0.025;
+		if (out[i] > 6.375 || out[i] < 0)
+			return FAILURE;
+	}
+	return 0;
+}
+
+static int getCurrent(float *out, uint8_t *data) {
+	int i = 0;
+	for (i = 0; i < 3; i++) {
+		out[i] = data[i] * 0.01;
+		if (out[i] > 2.55 || out[i] < 0)
+			return FAILURE;
+	}
+	return 0;
+}
+
+static int getTemperature(float *out, uint8_t *data) {
+	out[0] = data[0] * 1;
+	if (out[0] > 127 || out[0] < -127)
+		return FAILURE;
+	else
+		return SUCCESS;
+}
+
+static int getMistake(int *out, uint8_t *data) {
+	int i = 0;
+	for (i = 0; i < 3; i++) {
+		out[i] = ((data[0] >> (i * 2)) & 3);
+	}
+	return SUCCESS;
+}
+
+static int getTotalMistake(int *out, uint8_t *data) {
+	out[0] = ((data[0] >> (3 * 2)) & 3);
+	return SUCCESS;
+}
+
+static int getMeasurementFloat(float *value_array, init_conf_t *conf) {
+	measurement_usb_chrg_t muc;
+	int rc;
+	uint8_t responseMeasurement[RESPONSE_CNT_UCH];
+
+	memset(&muc, 0, sizeof(measurement_usb_chrg_t));
+
+	rc = readCan(BYTE_MEASURE + conf->id, responseMeasurement);
+
+	rc = getVoltage(muc.usb_voltage, responseMeasurement);
+	memcpy(value_array, muc.usb_voltage, 3);
+
+	rc = getCurrent(muc.usb_current, &responseMeasurement[3]);
+	memcpy(&value_array[3], muc.usb_current, 3);
+
+	rc = getTemperature(&muc.temperature, &responseMeasurement[7]);
+	memcpy(&value_array[6], &muc.temperature, 1);
+
+	return rc;
+}
+
+static int getMeasurement(int *value_array, init_conf_t *conf) {
+	int rc;
+	measurement_usb_chrg_t muc;
+	uint8_t responseMeasurement[RESPONSE_CNT_UCH];
+	memset(&muc, 0, sizeof(measurement_usb_chrg_t));
+
+	rc = readCan(BYTE_MEASURE + conf->id, responseMeasurement);
+
+	rc = getMistake(muc.usb_mistake, &responseMeasurement[6]);
+	rc = getTotalMistake(&muc.total_mistake, &responseMeasurement[6]);
+
+	value_array[0] = muc.usb_mistake[0];
+	value_array[1] = muc.usb_mistake[1];
+	value_array[2] = muc.usb_mistake[2];
+	value_array[3] = muc.total_mistake;
+	return rc;
+}
+
+static int readCan(uint16_t cmd, uint8_t *response) {
+
 	struct can_frame frame;
 	fd_set set;
 	struct timeval tv;
-	int fd, nbytes = 0,i;
+	int fd, nbytes = 0;
 
 	fd = df_can->getDescriptor();
 
 	sleep(polling_time);
+	pthread_mutex_lock(&mutex_measurement);
 	if (response != NULL) {
-		memset(response, 0, 128);
 		do {
 			FD_ZERO(&set);
 			FD_SET(fd, &set);
@@ -89,32 +183,30 @@ static void readCan(uint8_t cmd[], uint8_t *response) {
 			tv.tv_usec = 0;
 			if (select(fd + 1, &set, NULL, NULL, &tv)) {/*ready read data*/
 				if (FD_ISSET(fd, &set)) {
-					nbytes = read(fd, &frame, sizeof(frame));
-					if (nbytes > 0) {
-						printf("%#x  [%d]  ", frame.can_id, frame.can_dlc);
-						for (i = 0; i < frame.can_dlc; i++)
-						printf("%#x ", frame.data[i]);
-						printf("\n");
+					nbytes = read(fd, &frame, sizeof(struct can_frame));
+					if (nbytes > 0 && (cmd == frame.can_id)) {
+						memcpy(response, frame.data, 8);
+						break;
 					}
 				}
-
-			} else { /*timeout*/
+			} else {
 				printf("Exit timeout \n");
 				break;
 			}
 
-		} while (nbytes < 9);
+		} while (1);
 	}
+	pthread_mutex_unlock(&mutex_measurement);
+	return SUCCESS;
 }
 
 static int UsbCharging_init(init_conf_t *conf) {
-	df_can = conf->dev_func;
+	df_can = ((devSensorFunc_t*) conf->dev_func)->devFunc;
 	if (!df_can->autoConfDev(conf->id)) {
 		return SUCCESS;
 	} else {
 		return FAILURE;
 	}
-	return SUCCESS;
 }
 
 int getSensorFncUsbCharging(devSensorFunc_t *cfgFuncs) {
@@ -122,9 +214,11 @@ int getSensorFncUsbCharging(devSensorFunc_t *cfgFuncs) {
 		return -1;
 	}
 	cfgFuncs->getMeasurement = getMeasurement;
+	cfgFuncs->getMeasurementFloat = getMeasurementFloat;
 	cfgFuncs->setPollingTime = setPollingTime;
 	cfgFuncs->mqtt_init_sub = mqtt_subscribe_init;
 	cfgFuncs->mqtt_clb = message_callback;
 	cfgFuncs->init = UsbCharging_init;
+	cfgFuncs->mtx = &mutex_measurement;
 	return SUCCESS;
 }

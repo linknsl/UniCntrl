@@ -11,7 +11,8 @@
 static void setAutoCalibration(bool autocalib);
 
 static int polling_time;
-pthread_mutex_t mutex_measurement;
+static devFunc_t *df_uart;
+static pthread_mutex_t mutex_measurement;
 
 static void writeCommand(uint8_t cmd[], uint8_t *response);
 static void calibrateZero(void);
@@ -74,7 +75,7 @@ static void calibrateZero(void) {
 	pthread_mutex_unlock(&mutex_measurement);
 }
 
-static int getMeasurement(int *value_array , mqtt_config_read_t *conf) {
+static int getMeasurement(int *value_array , init_conf_t *conf) {
 	measurement_mhz19_t ms;
 	uint8_t response[RESPONSE_CNT];
 	memset(response, 0, RESPONSE_CNT);
@@ -131,7 +132,7 @@ static void writeCommand(uint8_t cmd[], uint8_t *response) {
 	struct timeval tv;
 	int fd, nread = 0;
 
-	fd = getDescriptor();
+	fd = df_uart->getDescriptor();
 
 	uint8_t buff[RESPONSE_CNT];
 	memcpy(buff, cmd, 8);
@@ -150,9 +151,9 @@ static void writeCommand(uint8_t cmd[], uint8_t *response) {
 				if (FD_ISSET(fd, &set)) {
 					nread += read(fd, response + nread, sizeof(RESPONSE_CNT));
 				}
-				Reconnect(true);
+				df_uart->recconect(true);
 			} else { /*timeout*/
-				Reconnect(false);
+				df_uart->recconect(false);
 				printf("Exit timeout \n");
 				break;
 
@@ -163,7 +164,8 @@ static void writeCommand(uint8_t cmd[], uint8_t *response) {
 }
 
 static int mhz19c_init(init_conf_t *conf) {
-	if (!autoConfUart(conf->id)) {
+	df_uart = ((devSensorFunc_t*) conf->dev_func)->devFunc;
+	if (!df_uart->autoConfDev(conf->id)) {
 		return SUCCESS;
 	} else {
 		return FAILURE;
@@ -178,6 +180,7 @@ int getSensorFncMhz19c(devSensorFunc_t *cfgFuncs) {
 	cfgFuncs->setPollingTime = setPollingTime;
 	cfgFuncs->mqtt_init_sub = mqtt_subscribe_init;
 	cfgFuncs->mqtt_clb = message_callback;
+	cfgFuncs->mtx = &mutex_measurement;
 	cfgFuncs->init = mhz19c_init;
 	return SUCCESS;
 }
