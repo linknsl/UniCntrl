@@ -14,12 +14,14 @@ void* read_sensor(void *param) {
 	int *value_array = NULL;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
+	init_conf_t ic;
+	ic.id =0;
 
 	getSensorFncAPDS9300(&dSf);
 	init(param, &ucfg, &dSf, I2CS);
 	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(int));
 	while (1) {
-		dSf.getMeasurement(value_array, ucfg.mqtt_read);
+		dSf.getMeasurement(value_array, &ic);
 		mqttResultPubInt(&ucfg, value_array);
 		usleep(100);
 	}
