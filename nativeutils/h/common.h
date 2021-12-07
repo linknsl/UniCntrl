@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
+#include <poll.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>

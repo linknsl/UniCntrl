@@ -12,7 +12,7 @@ static void setAutoCalibration(bool autocalib);
 
 static int polling_time;
 static devFunc_t *df_uart;
-static pthread_mutex_t mutex_measurement;
+static pthread_mutex_t mutex_measurement = PTHREAD_MUTEX_INITIALIZER;
 
 static void writeCommand(uint8_t cmd[], uint8_t *response);
 static void calibrateZero(void);

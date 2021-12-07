@@ -8,13 +8,6 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <poll.h>
 #include <common.h>
 #include <apds9300.h>
 
@@ -26,7 +19,7 @@ static char root[SIZE_LONG_STRING];
 #define SIZE_SUBSCRIBE_APDS9300 1
 static char *subscribe[] = { "reset" };
 
-static void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
+static void message_callback(struct msosquitto *mosq, void *obj, const struct mosquitto_message *message) {
 	int num = 0;
 
 	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {

@@ -28,13 +28,13 @@ static void message_callback(struct mosquitto *mosq, void *obj, const struct mos
 		getMeasurementId(value_array_int, &conf);
 		switch (num) {
 		case SOFT_ID:
-			mqtt_gen_topic_and_pub_int(obj, subscribe[0], value_array_int[0]);
+			mqtt_gen_topic_and_pub_int(obj, "id", value_array_int[0]);
 			break;
 		case HARD_ID:
-			mqtt_gen_topic_and_pub_int(obj, subscribe[0], value_array_int[0]);
+			mqtt_gen_topic_and_pub_int(obj, "id", value_array_int[1]);
 			break;
 		case UNIQ_ID:
-			mqtt_gen_topic_and_pub_hex(obj, subscribe[0], value_array_int[2]);
+			mqtt_gen_topic_and_pub_hex(obj, "id", value_array_int[2]);
 			break;
 		default:
 			break;
@@ -73,9 +73,9 @@ static int getMeasurementId(int *value_array, init_conf_t *conf) {
 
 	readCan(BYTE_ID + conf->id, responseId);
 
-	iuc.soft_id = getSoftId(&responseId[0]);
-	iuc.hard_id = getHardId(&responseId[2]);
-	iuc.uniq_id = getUniqId(&responseId[4]);
+	iuc.soft_id = getSoftId(responseId);
+	iuc.hard_id = getHardId(responseId);
+	iuc.uniq_id = getUniqId(responseId);
 
 	value_array[0] = iuc.soft_id;
 	value_array[1] = iuc.hard_id;

@@ -19,16 +19,13 @@ typedef struct measurement_mhz19 {
 	bool cheksum;
 } measurement_mhz19_t;
 
-/*typedef int (*FUNCP_GET_MESUREMENT)( measurement_mhz19_t *measurement);*/
-
 enum MHZ19_UART_DATA {
 	PPM, TEMPERATURE, STAT
 };
 
 typedef enum MHZ19_CALIBRATE {
-	ZERO, SPAN, AUTO_ON, AUTO_OFF
+	ZERO, AUTO_ON, AUTO_OFF
 } eMhz19_calibrate;
-
 
 int getSensorFncMhz19c(devSensorFunc_t *cfgFuncs);
 

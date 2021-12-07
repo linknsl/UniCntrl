@@ -33,7 +33,7 @@ void* read_sensor(void *param) {
 
 	ucfg.mqtt_read->param_add.start = 0;
 	ucfg.mqtt_read->param_float.start = 3;
-	ucfg.mqtt_read->param_int.start = 9;
+	ucfg.mqtt_read->param_int.start = 10;
 
 	while (1) {
 		if (dSf.getMeasurement(value_array_int, &ic) == SUCCESS)

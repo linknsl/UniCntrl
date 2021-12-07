@@ -8,6 +8,8 @@
 
 int fd_uart, numInstance = 0;
 struct mosquitto *mosq = NULL;
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+
 void connect_callback(struct mosquitto *mosq, void *obj, int result) {
 	printf("connect callback, rc=%d\n", result);
 }
@@ -101,7 +103,9 @@ int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array) {
 int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value) {
 	int snd;
 	char message[SIZE_STRING];
+	memset(message, 0, SIZE_STRING);
 	char fulltopic[SIZE_LONG_STRING];
+	memset(fulltopic, 0, SIZE_LONG_STRING);
 
 	sprintf(fulltopic, "%s/%s", topic, sub_topic);
 	sprintf(message, "%d", value);
@@ -141,6 +145,7 @@ int mqtt_gen_topic_and_pub_float(char *topic, char *sub_topic, float value) {
 	sprintf(message, "%f", value);
 
 	snd = mqtt_send(message, fulltopic);
+
 	if (snd != 0) {
 		fprintf(stderr, "mqtt_send error: %i\n", snd);
 		return -1;
@@ -154,5 +159,9 @@ int mqtt_sub(char *topic) {
 }
 
 int mqtt_send(char *msg, char *topic) {
-	return mosquitto_publish(mosq, NULL, topic, strlen(msg), msg, 0, 0);
+	int rc = 0;
+	pthread_mutex_lock(&mtx);
+	rc = mosquitto_publish(mosq, NULL, topic, strlen(msg), msg, 0, 0);
+	pthread_mutex_unlock(&mtx);
+	return rc;
 }
