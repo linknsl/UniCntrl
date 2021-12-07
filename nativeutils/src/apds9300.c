@@ -17,13 +17,15 @@ static int polling_time;
 static char root[SIZE_LONG_STRING];
 
 #define SIZE_SUBSCRIBE_APDS9300 1
+
 static char *subscribe[] = { "reset" };
 
-static void message_callback(struct msosquitto *mosq, void *obj, const struct mosquitto_message *message) {
+static void message_callback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message) {
 	int num = 0;
 
 	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
 		num = atoi(message->payload);
+
 		printf("reset %d \n", num);
 	}
 }

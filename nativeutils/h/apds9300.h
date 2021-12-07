@@ -12,7 +12,6 @@
 
 #define HWMON_ROOT_APDS9300 "/sys/class/i2c-dev"
 #define HWMON_PREFIX_APDS9300 "iio\:device0"
-/*char HWMON_PREFIX_APDS9300[] = "iio\\:device0";*/
 
 #define APDS9300_ILLUMINANCE "in_illuminance0_input"
 #define APDS9300_INTENSITY0 "in_intensity0_raw"

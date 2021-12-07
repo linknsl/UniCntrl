@@ -32,7 +32,7 @@ static void Reconnect(bool status) {
 #ifdef ARM
 		autoConfUart(0);
 #else
-		printf("Reconect \n");
+		fprintf(stderr, "Reconect \n");
 #endif
 	}
 }
@@ -62,7 +62,7 @@ static int set_speed(int speed) {
 	}
 
 	if (i == 12) {
-		printf("\tSorry, please set the correct baud rate!\n\n");
+		fprintf(stderr, "\tSorry, please set the correct baud rate!\n\n");
 	}
 	return SUCCESS;
 }
@@ -141,12 +141,12 @@ static bool set_Parity(int databits, int stopbits, int parity) {
 
 static int openDev(char *Dev) {
 	if (fd_uart > 0) {
-		printf("Reconect... Old descr %d \n", fd_uart);
+		fprintf(stderr, "Reconect... Old descr %d \n", fd_uart);
 		close(fd_uart);
 		fd_uart = -1;
 	}
 	fd_uart = open(Dev, O_RDWR);
-	printf("Connect... New descr %d \n", fd_uart);
+	fprintf(stderr, "Connect... New descr %d \n", fd_uart);
 	if (-1 == fd_uart) {
 		perror("Can't Open Serial Port");
 		return -1;

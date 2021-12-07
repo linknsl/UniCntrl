@@ -168,7 +168,7 @@ static int getMeasurement(int *value_array, init_conf_t *conf) {
 }
 
 static int readCan(uint16_t cmd, uint8_t *response) {
-	int rc = 0;
+	int rc = 0,cnt_timeout = 0;
 	struct can_frame frame;
 	fd_set set;
 	struct timeval tv;
@@ -177,7 +177,6 @@ static int readCan(uint16_t cmd, uint8_t *response) {
 	fd = df_can->getDescriptor();
 
 	/*	sleep(polling_time);*/
-	pthread_mutex_lock(&mutex_measurement);
 	if (response != NULL) {
 		do {
 			FD_ZERO(&set);
@@ -186,22 +185,27 @@ static int readCan(uint16_t cmd, uint8_t *response) {
 			tv.tv_usec = 0;
 			if (select(fd + 1, &set, NULL, NULL, &tv)) {/*ready read data*/
 				if (FD_ISSET(fd, &set)) {
+
+					pthread_mutex_lock(&mutex_measurement);
 					nbytes = read(fd, &frame, sizeof(struct can_frame));
+					pthread_mutex_unlock(&mutex_measurement);
+
 					if (nbytes > 0 && (cmd == frame.can_id)) {
 						memcpy(response, frame.data, 8);
 						rc = SUCCESS;
+						cnt_timeout = 0;
 						break;
 					}
 				}
 			} else {
 				printf("Exit timeout \n");
+				cnt_timeout++;
 				rc = FAILURE;
 				break;
 			}
 
 		} while (1);
 	}
-	pthread_mutex_unlock(&mutex_measurement);
 	return rc;
 }
 
