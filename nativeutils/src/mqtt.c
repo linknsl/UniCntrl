@@ -72,18 +72,28 @@ int mqtt_gen_topic_and_sub(char *topic, char *sub_topic) {
 
 int mqttResultPubInt(usr_cfg_t *ucfg, int *value_array) {
 	params_t *item;
-	int i;
+	int i, start = ucfg->mqtt_read->param_int.start;
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
-		mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+		if (start == 0)
+			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+		else if (start >= i) {
+			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i - start]);
+		}
 	}
 	return SUCCESS;
 }
 
 int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array) {
 	params_t *item;
-	int i;
+	int i, start = ucfg->mqtt_read->param_float.start;
+	int end = ucfg->mqtt_read->param_int.start;
+
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
-		mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param, value_array[i]);
+		if (start == 0)
+			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+		else if (start >= i && i < end) {
+			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i - start]);
+		}
 	}
 	return SUCCESS;
 }

@@ -240,7 +240,7 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 	return (EXIT_SUCCESS);
 }
 
-int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
+/*int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
 	int i = 0;
 	params_t *p;
 	param = malloc(ms->param_size * SIZE_PARAM);
@@ -252,7 +252,7 @@ int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
 		i++;
 	}
 	return SUCCESS;
-}
+}*/
 
 int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name, int numInstance) {
 

@@ -11,11 +11,11 @@
 #include <stdlib.h>
 
 int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
-	char **params = NULL;
+/*	char **params = NULL;*/
 
 	init_conf_t ic;
 	read_usr_configure(uc, *id, block);
-	get_usr_param_cnf(uc->mqtt_read, params);
+/*	get_usr_param_cnf(uc->mqtt_read, params);*/
 
 	ic.id = *id;
 	ic.dev_sett = uc->dev_cfg;

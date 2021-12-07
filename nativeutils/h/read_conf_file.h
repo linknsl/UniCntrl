@@ -65,12 +65,19 @@ typedef struct params {
 	struct params *next;
 } params_t;
 
+typedef struct prm_sequence {
+	int start;
+} prm_sequence_t;
+
 typedef struct mqtt_config_read {
 	int id;
 	int polling_time;
 	char *sensor_name;
 	params_t *params;
 	int param_size;
+	prm_sequence_t param_float;
+	prm_sequence_t param_int;
+	prm_sequence_t param_add;
 } mqtt_config_read_t;
 
 typedef struct mqtt_config {
@@ -96,5 +103,5 @@ int readConfUart(uart_setting_t *us, int numInstance);
 int readConfI2C(i2c_setting_t *is, int numInstance);
 int readConfOneW1(onew1_setting_t *os, int numInstance);
 int readConfCAN(can_setting_t *cs, int numInstance);
-int get_usr_param_cnf(mqtt_config_read_t *ms, char *param[]);
+/*int get_usr_param_cnf(mqtt_config_read_t *ms, char *param[]);*/
 #endif /* H_READ_CONF_FILE_H_ */
