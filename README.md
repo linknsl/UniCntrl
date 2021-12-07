@@ -1,5 +1,6 @@
 # UniCntrl
-cd /UniCntrl/x86_utils/
+cd /UniCntrl/x86_utils
+
 ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/humidity -v
 ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/temperature -v
 
