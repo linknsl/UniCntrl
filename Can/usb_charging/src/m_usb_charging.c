@@ -23,7 +23,7 @@ void* read_sensor(void *param) {
 	devSensorFunc_t dSf;
 	devFunc_t df_can;
 	init_conf_t ic;
-	ic.id =0;
+	ic.id = 0;
 
 	getFncCan(&df_can);
 	dSf.devFunc = &df_can;
@@ -36,11 +36,11 @@ void* read_sensor(void *param) {
 	ucfg.mqtt_read->param_int.start = 9;
 
 	while (1) {
-		dSf.getMeasurement(value_array_int, &ic);
-		mqttResultPubInt(&ucfg, value_array_int);
+		if (dSf.getMeasurement(value_array_int, &ic) == SUCCESS)
+			mqttResultPubInt(&ucfg, value_array_int);
 
-		dSf.getMeasurementFloat(value_array_float, &ic);
-		mqttResultPubFloat(&ucfg, value_array_float);
+		if (dSf.getMeasurementFloat(value_array_float, &ic) == SUCCESS)
+			mqttResultPubFloat(&ucfg, value_array_float);
 		usleep(100);
 	}
 	pthread_exit(SUCCESS);

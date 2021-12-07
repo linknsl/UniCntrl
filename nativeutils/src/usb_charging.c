@@ -27,17 +27,17 @@ static void message_callback(struct mosquitto *mosq, void *obj, const struct mos
 		num = (eUsbCharging) atoi(message->payload);
 		getMeasurementId(value_array_int, &conf);
 		switch (num) {
-			case SOFT_ID:
-				mqtt_gen_topic_and_pub_int(obj,subscribe[0],value_array_int[0]);
-				break;
-			case HARD_ID:
-				mqtt_gen_topic_and_pub_int(obj,subscribe[0],value_array_int[0]);
-				break;
-			case UNIQ_ID:
-				mqtt_gen_topic_and_pub_hex(obj,subscribe[0],value_array_int[2]);
-				break;
-			default:
-				break;
+		case SOFT_ID:
+			mqtt_gen_topic_and_pub_int(obj, subscribe[0], value_array_int[0]);
+			break;
+		case HARD_ID:
+			mqtt_gen_topic_and_pub_int(obj, subscribe[0], value_array_int[0]);
+			break;
+		case UNIQ_ID:
+			mqtt_gen_topic_and_pub_hex(obj, subscribe[0], value_array_int[2]);
+			break;
+		default:
+			break;
 		}
 	}
 }
@@ -133,15 +133,16 @@ static int getMeasurementFloat(float *value_array, init_conf_t *conf) {
 	memset(&muc, 0, sizeof(measurement_usb_chrg_t));
 
 	rc = readCan(BYTE_MEASURE + conf->id, responseMeasurement);
-
+	if (rc != 0)
+		return rc;
 	rc = getVoltage(muc.usb_voltage, responseMeasurement);
-	memcpy(value_array, muc.usb_voltage, 3);
+	memcpy(value_array, muc.usb_voltage, 3 * sizeof(float));
 
 	rc = getCurrent(muc.usb_current, &responseMeasurement[3]);
-	memcpy(&value_array[3], muc.usb_current, 3);
+	memcpy(&value_array[3], muc.usb_current, 3 * sizeof(float));
 
 	rc = getTemperature(&muc.temperature, &responseMeasurement[7]);
-	memcpy(&value_array[6], &muc.temperature, 1);
+	memcpy(&value_array[6], &muc.temperature, sizeof(float));
 
 	return rc;
 }
@@ -153,6 +154,8 @@ static int getMeasurement(int *value_array, init_conf_t *conf) {
 	memset(&muc, 0, sizeof(measurement_usb_chrg_t));
 
 	rc = readCan(BYTE_MEASURE + conf->id, responseMeasurement);
+	if (rc != 0)
+		return rc;
 
 	rc = getMistake(muc.usb_mistake, &responseMeasurement[6]);
 	rc = getTotalMistake(&muc.total_mistake, &responseMeasurement[6]);
@@ -165,7 +168,7 @@ static int getMeasurement(int *value_array, init_conf_t *conf) {
 }
 
 static int readCan(uint16_t cmd, uint8_t *response) {
-
+	int rc = 0;
 	struct can_frame frame;
 	fd_set set;
 	struct timeval tv;
@@ -173,31 +176,33 @@ static int readCan(uint16_t cmd, uint8_t *response) {
 
 	fd = df_can->getDescriptor();
 
-	sleep(polling_time);
+	/*	sleep(polling_time);*/
 	pthread_mutex_lock(&mutex_measurement);
 	if (response != NULL) {
 		do {
 			FD_ZERO(&set);
 			FD_SET(fd, &set);
-			tv.tv_sec = 1;
+			tv.tv_sec = 2;
 			tv.tv_usec = 0;
 			if (select(fd + 1, &set, NULL, NULL, &tv)) {/*ready read data*/
 				if (FD_ISSET(fd, &set)) {
 					nbytes = read(fd, &frame, sizeof(struct can_frame));
 					if (nbytes > 0 && (cmd == frame.can_id)) {
 						memcpy(response, frame.data, 8);
+						rc = SUCCESS;
 						break;
 					}
 				}
 			} else {
 				printf("Exit timeout \n");
+				rc = FAILURE;
 				break;
 			}
 
 		} while (1);
 	}
 	pthread_mutex_unlock(&mutex_measurement);
-	return SUCCESS;
+	return rc;
 }
 
 static int UsbCharging_init(init_conf_t *conf) {

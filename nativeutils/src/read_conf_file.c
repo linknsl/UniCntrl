@@ -210,7 +210,7 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 		params_t *params = NULL;
 		char *param = malloc(SIZE_PARAM);
 		rc = 1, j = 1;
-
+		msr->params = NULL;
 		while (rc) {
 			const char *new_param = NULL;
 			sprintf(param, "param%d", j);
@@ -240,7 +240,7 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 	return (EXIT_SUCCESS);
 }
 
-/*int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
+int get_usr_param_cnf(mqtt_config_read_t *ms, char **param) {
 	int i = 0;
 	params_t *p;
 	param = malloc(ms->param_size * SIZE_PARAM);
@@ -252,7 +252,7 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 		i++;
 	}
 	return SUCCESS;
-}*/
+}
 
 int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name, int numInstance) {
 
@@ -294,9 +294,11 @@ int read_usr_configure(usr_cfg_t *uc, int numInstance, eRead_configure block) {
 	read_dev_configure(uc, block, &id, name, numInstance);
 
 	uc->mqtt_general = malloc(sizeof(mqtt_config_t));
+	memset(uc->mqtt_general, 0, sizeof(mqtt_config_t));
 	readGnrlMqtt(uc->mqtt_general, VERSION_MQTT_GNRL);
 
 	uc->mqtt_read = malloc(sizeof(mqtt_config_read_t));
+	memset(uc->mqtt_read, 0, sizeof(mqtt_config_read_t));
 	readConfMqtt(uc->mqtt_read, id);
 
 	sprintf(uc->mqtt_general->topic, "%d/%d/%s/%s", uc->mqtt_general->number_board, numInstance, name,

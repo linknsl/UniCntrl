@@ -103,5 +103,5 @@ int readConfUart(uart_setting_t *us, int numInstance);
 int readConfI2C(i2c_setting_t *is, int numInstance);
 int readConfOneW1(onew1_setting_t *os, int numInstance);
 int readConfCAN(can_setting_t *cs, int numInstance);
-/*int get_usr_param_cnf(mqtt_config_read_t *ms, char *param[]);*/
+int get_usr_param_cnf(mqtt_config_read_t *ms, char **param);
 #endif /* H_READ_CONF_FILE_H_ */
