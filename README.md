@@ -11,6 +11,14 @@ cd /UniCntrl/x86_utils
 ./mosquitto_sub -h localhost -p 1883 -t 0/0/uart1/mhz19C/co2_ppm -v
 ./mosquitto_sub -h localhost -p 1883 -t 0/0/uart1/mhz19C/temperature -v
 
+Коллибровка имеет 3 варианта ZERO 0, SPAN 1, AUTO_ON 2, AUTO_OFF 3
+./mosquitto_pub -h localhost -p 1883 -i myClient -t 0/0/uart1/mhz19C/setCalibrate -m "0"
+./mosquitto_pub -h localhost -p 1883 -i myClient -t 0/0/uart1/mhz19C/setCalibrate -m "1"
+./mosquitto_pub -h localhost -p 1883 -i myClient -t 0/0/uart1/mhz19C/setCalibrate -m "2"
+
+Коллибровка когда известно сколько в данный  момент ppm 
+./mosquitto_pub -h localhost -p 1883 -i myClient -t 0/0/uart1/mhz19C/setCalibrateSpan -m "1100" 
+
 ./mosquitto_sub -h localhost -p 1883 -t 0/0/o1wireIO1_24/ds18b20/temperature -v
 
 ./mosquitto_sub -h localhost -p 1883 -t 0/0/can0/usb_charging/usb1_voltage -v
