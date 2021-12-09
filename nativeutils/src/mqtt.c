@@ -24,7 +24,8 @@ int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
 	return match;
 }
 
-void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const char *str) {
+void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level,
+		const char *str) {
 	switch (level) {
 	case MOSQ_LOG_DEBUG:
 	case MOSQ_LOG_INFO:
@@ -55,9 +56,14 @@ void mqtt_setup(mqtt_config_t *ms) {
 	/*	if (ms->log != 0)
 	 mosquitto_log_callback_set(mosq, mosq_log_callback);*/
 
-	if (mosquitto_connect(mosq, host, port, keepalive)) {
-		fprintf(stderr, "Unable to connect.\n");
-		exit(1);
+	while (1) {
+
+		if (mosquitto_connect(mosq, host, port, keepalive)) {
+			fprintf(stderr, "waiting to connect server. %s\n", host );
+			sleep(1);
+		}else{
+			break;
+		}
 	}
 	int loop = mosquitto_loop_start(mosq);
 	if (loop != MOSQ_ERR_SUCCESS) {
@@ -77,9 +83,11 @@ int mqttResultPubInt(usr_cfg_t *ucfg, int *value_array) {
 	int i, start = ucfg->mqtt_read->param_int.start;
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
 		if (start == 0)
-			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i]);
+			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param,
+					value_array[i]);
 		else if (i >= start) {
-			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param, value_array[i - start]);
+			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param,
+					value_array[i - start]);
 		}
 	}
 	return SUCCESS;
@@ -92,9 +100,11 @@ int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array) {
 
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
 		if (start == 0)
-			mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param, value_array[i]);
+			mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param,
+					value_array[i]);
 		else if (i >= start && i < end) {
-			mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param, value_array[i - start]);
+			mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param,
+					value_array[i - start]);
 		}
 	}
 	return SUCCESS;
@@ -112,7 +122,7 @@ int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value) {
 
 	snd = mqtt_send(message, fulltopic);
 	if (snd != 0) {
-		fprintf(stderr, "mqtt_send error: %i\n", snd);
+		fprintf(stderr, "It don't can to send  : %s Have not connect server\n", fulltopic);
 		return -1;
 	} else {
 		return 0;
@@ -129,7 +139,7 @@ int mqtt_gen_topic_and_pub_hex(char *topic, char *sub_topic, int value) {
 
 	snd = mqtt_send(message, fulltopic);
 	if (snd != 0) {
-		fprintf(stderr, "mqtt_send error: %i\n", snd);
+		fprintf(stderr, "It don't can to send  : %s Have not connect server\n", fulltopic);
 		return -1;
 	} else {
 		return 0;
@@ -147,7 +157,7 @@ int mqtt_gen_topic_and_pub_float(char *topic, char *sub_topic, float value) {
 	snd = mqtt_send(message, fulltopic);
 
 	if (snd != 0) {
-		fprintf(stderr, "mqtt_send error: %i\n", snd);
+		fprintf(stderr, "It don't can to send  : %s Have not connect server\n", fulltopic);
 		return -1;
 	} else {
 		return 0;

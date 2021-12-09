@@ -11,7 +11,7 @@
 #include <common.h>
 
 #define PATH_CONF_FILE "/etc"
-#define NAME_CONF_FILE "unicntrl.cfg"
+#define NAME_CONF_FILE "/etc/unicntrl.cfg"
 
 #define CONF_MQTT      "application.mqtt.general"
 #define CONF_MQTT_READ "application.mqtt.read"
