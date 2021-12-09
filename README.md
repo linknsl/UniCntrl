@@ -35,13 +35,19 @@ cd /UniCntrl/x86_utils
 - 4.Наименование параметра (температура влажность и.т.д)
 
 Примеры:
+ 
+Получение информации с sht21:
 
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/humidity -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/temperature -v
 
+Получение информации с apds9300:
+
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_illuminance -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_intensity0 -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_intensity1 -v
+
+Получение информации с mhz19C:
 
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/uart1/mhz19C/co2_ppm -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/uart1/mhz19C/temperature -v
@@ -56,7 +62,11 @@ cd /UniCntrl/x86_utils
 
     ./mosquitto_pub -h localhost -p 1883 -t 0/0/uart1/mhz19C/setCalibrateSpan -m "1100" 
 
+Получение информации с ds18b20:
+
     ./mosquitto_sub -h localhost -p 1883 -t 0/0/o1wireIO1_24/ds18b20/temperature -v
+
+Получение информации с usb зарядок:
 
     ./mosquitto_sub -h localhost -p 1883 -t 0/0/can0/usb_charging/usb1_voltage -v
     ./mosquitto_sub -h localhost -p 1883 -t 0/0/can0/usb_charging/usb2_voltage -v
