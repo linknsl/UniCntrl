@@ -1,0 +1,420 @@
+/*
+ * Copyright (C) 2020 starterkit.ru
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/input/input.h>
+#include "imx6ull.dtsi"
+
+/ {
+	model = "Starterkit i.MX6 ULL Board";
+	compatible = "fsl,imx6ull-14x14-evk", "fsl,imx6ull";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+
+	memory {
+		reg = <0x80000000 0x10000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x14000000>;
+			linux,cma-default;
+		};
+	};
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_dvfs: regulator@1 {
+			compatible = "regulator-fixed";
+			regulator-name = "DVFS_1V4";
+			regulator-min-microvolt = <1400000>;
+			regulator-max-microvolt = <1400000>;
+		};
+
+		reg_vref_3v3: regulator@2 {
+			compatible = "regulator-fixed";
+			regulator-name = "vref-3v3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+		};
+		reg_can_3v3: regulator@3 {
+			compatible = "regulator-fixed";
+			regulator-name = "can-3v3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+		};
+	};
+
+	sound-mqs {
+		compatible = "fsl,imx6ull-sk-mqs", "fsl,imx-audio-mqs";
+		model = "mqs-audio";
+		cpu-dai = <&sai1>;
+		asrc-controller = <&asrc>;
+		audio-codec = <&mqs>;
+	};
+	
+/* 	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+	led3: link_eth1 {
+			label = "link_eth1";
+			gpios = <&gpio1 24 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+			linux,default-trigger = "gpio";
+		};
+	}; */
+	onewire {
+		compatible = "w1-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&w1_gpio_pins>;
+		status = "okay";
+		gpios = <&gpio1 24 0>;
+	};
+};
+
+&clks {
+	assigned-clocks = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
+	assigned-clock-rates = <786432000>;
+};
+
+&cpu0 {
+	arm-supply = <&reg_arm>;
+	soc-supply = <&reg_soc>;
+	dc-supply = <&reg_dvfs>;
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enet1>;
+	phy-mode = "rmii";
+	phy-reset-gpios = <&gpio5 1 0>;
+	status = "okay";
+};
+
+&flexcan1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexcan1>;
+	xceiver-supply = <&reg_can_3v3>;
+	status = "okay";
+};
+&gpc {
+	fsl,cpu_pupscr_sw2iso = <0x1>;
+	fsl,cpu_pupscr_sw = <0x0>;
+	fsl,cpu_pdnscr_iso2sw = <0x1>;
+	fsl,cpu_pdnscr_iso = <0x1>;
+	fsl,ldo-bypass = <0>; /* DCDC, ldo-enable */
+};
+
+&i2c1 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c1>;
+	status = "okay";
+	
+    light-sensor@39 {
+            compatible = "avago,apds9300";
+            reg = <0x39>;
+            interrupt-parent = <&gpio2>;
+            interrupts = <29 8>;
+        };
+};
+
+/*
+         16      HYS     0   CMOS input
+                     1   Schmitt trigger input
+     15-14   PUS     00  100 kOhm Pull Down
+                     01  47 kOhm Pull Up
+                     10  100 kOhm Pull Up
+                     11  22 kOhm Pull Up
+     13      PUE     0   Keeper enable
+                     1   Pull enable             Selection between keeper and pull up/down function
+     12      PKE     0   Pull/Keeper Disabled
+                     1   Pull/Keeper Enabled     Enable keeper or pull up/down function
+     11      ODE     0   Output is CMOS
+                     1   Output is open drain
+     10-8            Reserved
+     7-6     SPEED   00  Reserved
+                     01  Low (50 MHz)
+                     10  Medium (100 MHz)
+                     11  High (200 MHz)
+     5-3     DSE     000 output driver disabled (Hi Z)
+                     001 240 Ohm
+                     010 120 Ohm
+                     011 80 Ohm
+                     100 60 Ohm
+                     101 48 Ohm
+                     110 40 Ohm
+                     111 34 Ohm                  If possible decrease the drive strength by increasing the resistance in order to reduce EMC problems
+     2-1 Reserved
+     0       SRE     0   Slow Slew Rate
+                     1   Fast Slew Rate          Use slow slew rate if possible for reducing EMC problems
+     */
+ 
+     // 0x100b1  1 00 0 0 0 000 10 110 00 1
+     // 0x130b0  1 00 1 1 0 000 10 110 00 0
+     // 0x170c1  1 01 1 1 0 000 11 000 00 1
+     // 0x000c1  0 00 0 0 0 000 11 000 00 1
+     // 0x100c1  1 00 0 0 0 000 11 000 00 1
+
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog_1>;
+	imx6ul-sk {
+		pinctrl_hog_1: hoggrp-1 {
+			fsl,pins = <
+				/* USB0_PWR */
+				MX6UL_PAD_UART2_RTS_B__GPIO1_IO23       0x17059
+				/* USB1_PWR */
+				MX6UL_PAD_UART2_CTS_B__GPIO1_IO22       0x17059
+				/* GSM_PWR */
+				MX6UL_PAD_SD1_CMD__GPIO2_IO16           0x17059
+				/* GSM_STATUS */
+				MX6UL_PAD_SD1_DATA3__GPIO2_IO21         0x17059
+				/* GSM_RING */
+				MX6UL_PAD_SD1_DATA2__GPIO2_IO20         0x17059
+				/* UART3_DE */
+				MX6UL_PAD_ENET2_RX_DATA0__GPIO2_IO08    0x17059
+				/* UART2_DE */
+				MX6UL_PAD_ENET2_RX_DATA1__GPIO2_IO09    0x17059
+			>;
+		};
+
+		pinctrl_enet1: enet1grp {
+			fsl,pins = <
+				MX6UL_PAD_GPIO1_IO07__ENET1_MDC	           0x1b0b0
+				MX6UL_PAD_GPIO1_IO06__ENET1_MDIO           0x1b0b0
+				MX6UL_PAD_ENET1_RX_EN__ENET1_RX_EN         0x1b0b0
+				MX6UL_PAD_ENET1_RX_ER__ENET1_RX_ER         0x1b0b0
+				MX6UL_PAD_ENET1_RX_DATA0__ENET1_RDATA00    0x1b0b0
+				MX6UL_PAD_ENET1_RX_DATA1__ENET1_RDATA01    0x1b0b0
+				MX6UL_PAD_ENET1_TX_EN__ENET1_TX_EN         0x1b0b0
+				MX6UL_PAD_ENET1_TX_DATA0__ENET1_TDATA00    0x1b0b0
+				MX6UL_PAD_ENET1_TX_DATA1__ENET1_TDATA01    0x1b0b0
+				MX6UL_PAD_ENET1_TX_CLK__ENET1_REF_CLK1     0x4001b031
+			>;
+		};
+
+		pinctrl_flexcan1: flexcan1grp {
+			fsl,pins = <
+				MX6UL_PAD_UART3_RTS_B__FLEXCAN1_RX      0x1b020
+				MX6UL_PAD_UART3_CTS_B__FLEXCAN1_TX      0x1b020
+			>;
+		};
+		pinctrl_i2c1: i2c1grp {
+			fsl,pins = <
+				MX6UL_PAD_GPIO1_IO02__I2C1_SCL    0x4001b8b0
+				MX6UL_PAD_GPIO1_IO03__I2C1_SDA    0x4001b8b0
+			>;
+		};
+		
+ 		w1_gpio_pins: w1grp {
+			fsl,pins = <
+				MX6UL_PAD_UART3_TX_DATA__GPIO1_IO24    0x1b0b0
+			>;
+                };
+		
+		pinctrl_mqs: mqsgrp {
+			fsl,pins = <
+				MX6UL_PAD_JTAG_TDI__MQS_LEFT    0x11088
+			>;
+		};
+
+
+		pinctrl_pwm6: pwm6grp {
+			fsl,pins = <
+				MX6UL_PAD_JTAG_TDI__PWM6_OUT    0x110b0
+			>;
+		};
+		pinctrl_qspi: qspigrp {
+			fsl,pins = <
+				MX6UL_PAD_NAND_WP_B__QSPI_A_SCLK         0x70a1
+				MX6UL_PAD_NAND_READY_B__QSPI_A_DATA00    0x70a1
+				MX6UL_PAD_NAND_CE0_B__QSPI_A_DATA01      0x70a1
+				MX6UL_PAD_NAND_CE1_B__QSPI_A_DATA02      0x70a1
+				MX6UL_PAD_NAND_CLE__QSPI_A_DATA03        0x70a1
+				MX6UL_PAD_NAND_DQS__QSPI_A_SS0_B         0x70a1
+			>;
+		};
+
+		pinctrl_uart1: uart1grp {
+			fsl,pins = <
+				MX6UL_PAD_UART1_TX_DATA__UART1_DCE_TX    0x1b0b1
+				MX6UL_PAD_UART1_RX_DATA__UART1_DCE_RX    0x1b0b1
+			>;
+		};
+
+ 		pinctrl_uart2: uart2grp {
+			fsl,pins = <
+				MX6UL_PAD_UART2_TX_DATA__UART2_DCE_TX    0x1b0b1
+				MX6UL_PAD_UART2_RX_DATA__UART2_DCE_RX    0x1b0b1
+			>;
+		}; 
+
+/* 		pinctrl_uart3: uart3grp {
+			fsl,pins = <
+				MX6UL_PAD_UART3_TX_DATA__UART3_DCE_TX    0x1b0b1
+				MX6UL_PAD_UART3_RX_DATA__UART3_DCE_RX    0x1b0b1
+			>;
+		}; */
+
+		pinctrl_uart4: uart4grp {
+			fsl,pins = <
+				MX6UL_PAD_UART4_TX_DATA__UART4_DCE_TX    0x1b0b1
+				MX6UL_PAD_UART4_RX_DATA__UART4_DCE_RX    0x1b0b1
+			>;
+		};
+
+		pinctrl_uart5: uart5grp {
+			fsl,pins = <
+				MX6UL_PAD_UART5_TX_DATA__UART5_DCE_TX    0x1b0b1
+				MX6UL_PAD_UART5_RX_DATA__UART5_DCE_RX    0x1b0b1
+			>;
+		};
+
+		pinctrl_usdhc2_8bit: usdhc2grp_8bit {
+			fsl,pins = <
+				MX6UL_PAD_NAND_RE_B__USDHC2_CLK        0x10069
+				MX6UL_PAD_NAND_WE_B__USDHC2_CMD        0x17059
+				MX6UL_PAD_NAND_DATA00__USDHC2_DATA0    0x17059
+				MX6UL_PAD_NAND_DATA01__USDHC2_DATA1    0x17059
+				MX6UL_PAD_NAND_DATA02__USDHC2_DATA2    0x17059
+				MX6UL_PAD_NAND_DATA03__USDHC2_DATA3    0x17059
+				MX6UL_PAD_NAND_DATA04__USDHC2_DATA4    0x17059
+				MX6UL_PAD_NAND_DATA05__USDHC2_DATA5    0x17059
+				MX6UL_PAD_NAND_DATA06__USDHC2_DATA6    0x17059
+				MX6UL_PAD_NAND_DATA07__USDHC2_DATA7    0x17059
+				MX6UL_PAD_NAND_ALE__USDHC2_RESET_B     0x170b0
+			>;
+		};
+	};
+};
+
+&iomuxc_snvs {
+	pinctrl-names = "default_snvs";
+	pinctrl-0 = <&pinctrl_hog_2>;
+	imx6ul-sk {
+		pinctrl_hog_2: hoggrp-2 {
+			fsl,pins = <
+				/* ETH_RES */
+				MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO01    0x80000000
+			>;
+		};
+	};
+};
+
+&pwm6 {
+	/* compatible = "fsl,imx-snd-pwm"; */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm6>;
+	clocks = <&clks IMX6UL_CLK_PWM6>,
+		 <&clks IMX6UL_CLK_PWM6>;
+	status = "disabled";
+};
+&sai1 {
+	assigned-clocks = <&clks IMX6UL_CLK_SAI1_SEL>,
+			<&clks IMX6UL_CLK_SAI1>;
+	assigned-clock-parents = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;
+	assigned-clock-rates = <0>, <24576000>;
+	status = "okay";
+};
+
+&mqs {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_mqs>;
+	clocks = <&clks IMX6UL_CLK_SAI1>;
+	clock-names = "mclk";
+	status = "okay";
+};
+
+&qspi {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_qspi>;
+	status = "okay";
+	ddrsmp=<0>;
+
+	flash0: mx25l12845g@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "spi-flash";
+		spi-max-frequency = <29000000>;
+		spi-nor,ddr-quad-read-dummy = <6>;
+		reg = <0>;
+	};
+};
+
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	status = "okay";
+};
+
+ &uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	status = "okay";
+}; 
+
+/* &uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+	rts-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+}; */
+
+&uart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	status = "okay";
+};
+
+&uart5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart5>;
+	status = "okay";
+};
+
+&usbotg1 {
+	dr_mode = "host";
+	disable-over-current;
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+&usbphy1 {
+	tx-d-cal = <0x5>;
+};
+
+&usbphy2 {
+	tx-d-cal = <0x5>;
+};
+
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2_8bit>;
+	bus-width = <8>;
+	no-1-8-v;
+	non-removable;
+	status = "okay";
+};

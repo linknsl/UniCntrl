@@ -176,7 +176,7 @@ static int readCan(uint16_t cmd, uint8_t *response) {
 
 	fd = df_can->getDescriptor();
 
-	/*	sleep(polling_time);*/
+	sleep(polling_time);
 	if (response != NULL) {
 		do {
 			FD_ZERO(&set);
