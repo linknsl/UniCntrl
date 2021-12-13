@@ -15,7 +15,7 @@ void* read_sensor(void *param) {
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
 	init_conf_t ic;
-	ic.id =0;
+	ic.id = 0;
 
 	getSensorFncDs18b20(&dSf);
 	init(param, &ucfg, &dSf, ONEW1S);
@@ -35,6 +35,7 @@ void terminate(int param) {
 
 int main(int argc, char *argv[]) {
 	int id;
+
 	signal(SIGTERM, terminate);
 	signal(SIGINT, terminate);
 

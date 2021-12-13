@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rexpfd>
+    <destination path="linkmint.192.168.0.136:/usr/lib"/>
+    <options createDirectoryStructure="false" createSelectedOnly="true" descriptionFilePath="/nativeutils/put.rexpfd" overWriteExistingFiles="true" reviewSynchronize="false" saveSettings="true"/>
+    <selectedElements>
+        <file path="/nativeutils/Debug_ARM/libnativeutils.so"/>
+    </selectedElements>
+</rexpfd>

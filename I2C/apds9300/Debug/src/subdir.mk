@@ -4,13 +4,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/m_usb_charging.c 
+../src/m_apds9300.c 
 
 OBJS += \
-./src/m_usb_charging.o 
+./src/m_apds9300.o 
 
 C_DEPS += \
-./src/m_usb_charging.d 
+./src/m_apds9300.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
