@@ -16,6 +16,7 @@ void* read_sensor(void *param) {
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
 	init_conf_t ic;
+
 	ic.id = 0;
 
 	getSensorFncDs18b20(&dSf);
