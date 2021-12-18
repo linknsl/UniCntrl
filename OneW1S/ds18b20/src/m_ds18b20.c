@@ -11,6 +11,7 @@
 #include <common.h>
 
 void* read_sensor(void *param) {
+
 	float *value_array;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
@@ -18,6 +19,7 @@ void* read_sensor(void *param) {
 	ic.id = 0;
 
 	getSensorFncDs18b20(&dSf);
+
 	init(param, &ucfg, &dSf, ONEW1S);
 	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(float));
 	while (1) {
