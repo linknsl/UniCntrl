@@ -154,9 +154,7 @@ static void writeCommand(uint8_t cmd[], uint8_t *response) {
 				df_uart->recconect(true);
 			} else { /*timeout*/
 				df_uart->recconect(false);
-				printf("Exit timeout \n");
 				break;
-
 			}
 
 		} while (nread < 9);
