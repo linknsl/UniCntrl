@@ -11,7 +11,7 @@ struct mosquitto *mosq = NULL;
 static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 
 void connect_callback(struct mosquitto *mosq, void *obj, int result) {
-	printf("connect callback, rc=%d\n", result);
+	LOG("connect callback, rc=%d\n", result);
 }
 
 int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
@@ -24,15 +24,14 @@ int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
 	return match;
 }
 
-void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level,
-		const char *str) {
+void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const char *str) {
 	switch (level) {
 	case MOSQ_LOG_DEBUG:
 	case MOSQ_LOG_INFO:
 	case MOSQ_LOG_NOTICE:
 	case MOSQ_LOG_WARNING:
 	case MOSQ_LOG_ERR: {
-		printf("%i:%s\n", level, str);
+		LOG_ERROR("%i:%s", level, str);
 	}
 	}
 }
@@ -46,7 +45,7 @@ void mqtt_setup(mqtt_config_t *ms) {
 	mosquitto_lib_init();
 	mosq = mosquitto_new(NULL, clean_session, ms->topic);
 	if (!mosq) {
-		fprintf(stderr, "Error: Out of memory.\n");
+		LOG_ERROR("Error: Out of memory.");
 		exit(1);
 	} else {
 		mosquitto_connect_callback_set(mosq, connect_callback);
@@ -59,15 +58,15 @@ void mqtt_setup(mqtt_config_t *ms) {
 	while (1) {
 
 		if (mosquitto_connect(mosq, host, port, keepalive)) {
-			fprintf(stderr, "waiting to connect server. %s\n", host );
+			LOG_ERROR("waiting to connect server. %s", host);
 			sleep(1);
-		}else{
+		} else {
 			break;
 		}
 	}
 	int loop = mosquitto_loop_start(mosq);
 	if (loop != MOSQ_ERR_SUCCESS) {
-		fprintf(stderr, "Unable to start loop: %i\n", loop);
+		LOG_ERROR("Unable to start loop: %i", loop);
 		exit(1);
 	}
 }
@@ -80,14 +79,16 @@ int mqtt_gen_topic_and_sub(char *topic, char *sub_topic) {
 
 int mqttResultPubInt(usr_cfg_t *ucfg, int *value_array) {
 	params_t *item;
-	int i, start = ucfg->mqtt_read->param_int.start;
+	int i, j, start = ucfg->mqtt_read->param_int.start;
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
-		if (start == 0)
-			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param,
-					value_array[i]);
-		else if (i >= start) {
-			mqtt_gen_topic_and_pub_int(ucfg->mqtt_general->topic, item->param,
-					value_array[i - start]);
+
+		j = start ? (i >= start) ? i - start : -1 : i;
+
+		if (j == -1)
+			continue;
+
+		if (mqtt_gen_topic_and_pub(ucfg->mqtt_general->topic, item->param, &value_array[j], INT) == FAILURE) {
+			return FAILURE;
 		}
 	}
 	return SUCCESS;
@@ -95,72 +96,50 @@ int mqttResultPubInt(usr_cfg_t *ucfg, int *value_array) {
 
 int mqttResultPubFloat(usr_cfg_t *ucfg, float *value_array) {
 	params_t *item;
-	int i, start = ucfg->mqtt_read->param_float.start;
+	int i, j, start = ucfg->mqtt_read->param_float.start;
 	int end = ucfg->mqtt_read->param_int.start;
 
 	for (item = ucfg->mqtt_read->params, i = 0; item; item = item->next, i++) {
-		if (start == 0)
-			mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param,
-					value_array[i]);
-		else if (i >= start && i < end) {
-			mqtt_gen_topic_and_pub_float(ucfg->mqtt_general->topic, item->param,
-					value_array[i - start]);
+		j = start ? (i >= start && i < end) ? i - start : -1 : i;
+
+		if (j == -1)
+			continue;
+
+		if (mqtt_gen_topic_and_pub(ucfg->mqtt_general->topic, item->param, &value_array[j], FLOAT) == FAILURE) {
+			return FAILURE;
 		}
 	}
 	return SUCCESS;
 }
 
-int mqtt_gen_topic_and_pub_int(char *topic, char *sub_topic, int value) {
-	int snd;
+int mqtt_gen_topic_and_pub(char *topic, char *sub_topic, void *value, eSend_type type) {
 	char message[SIZE_STRING];
 	memset(message, 0, SIZE_STRING);
 	char fulltopic[SIZE_LONG_STRING];
 	memset(fulltopic, 0, SIZE_LONG_STRING);
 
 	sprintf(fulltopic, "%s/%s", topic, sub_topic);
-	sprintf(message, "%d", value);
-
-	snd = mqtt_send(message, fulltopic);
-	if (snd != 0) {
-		fprintf(stderr, "It don't can to send  : %s Have not connect server\n", fulltopic);
-		return -1;
-	} else {
-		return 0;
+	switch (type) {
+	case INT:
+		sprintf(message, "%d", *((int*) value));
+		break;
+	case HEX:
+		sprintf(message, "0x%x", *((int*) value));
+		break;
+	case FLOAT:
+		sprintf(message, "%f", *((float*) value));
+		break;
+	case STRING:
+		sprintf(message, "%s", (char*) value);
+		break;
+	default:
+		break;
 	}
-}
 
-int mqtt_gen_topic_and_pub_hex(char *topic, char *sub_topic, int value) {
-	int snd;
-	char message[SIZE_STRING];
-	char fulltopic[SIZE_LONG_STRING];
-
-	sprintf(fulltopic, "%s/%s", topic, sub_topic);
-	sprintf(message, "0x%x", value);
-
-	snd = mqtt_send(message, fulltopic);
-	if (snd != 0) {
-		fprintf(stderr, "It don't can to send  : %s Have not connect server\n", fulltopic);
-		return -1;
+	if (mqtt_send(message, fulltopic) != 0) {
+		return FAILURE;
 	} else {
-		return 0;
-	}
-}
-
-int mqtt_gen_topic_and_pub_float(char *topic, char *sub_topic, float value) {
-	int snd;
-	char message[SIZE_STRING];
-	char fulltopic[SIZE_LONG_STRING];
-
-	sprintf(fulltopic, "%s/%s", topic, sub_topic);
-	sprintf(message, "%f", value);
-
-	snd = mqtt_send(message, fulltopic);
-
-	if (snd != 0) {
-		fprintf(stderr, "It don't can to send  : %s Have not connect server\n", fulltopic);
-		return -1;
-	} else {
-		return 0;
+		return SUCCESS;
 	}
 }
 

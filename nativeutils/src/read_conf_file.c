@@ -18,7 +18,7 @@ int readConfUart(uart_setting_t *us, int numInstance) {
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return (EXIT_FAILURE);
 	}
@@ -55,7 +55,7 @@ int readConfI2C(i2c_setting_t *is, int numInstance) {
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return (EXIT_FAILURE);
 	}
@@ -91,7 +91,7 @@ int readConfOneW1(onew1_setting_t *os, int numInstance) {
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return (EXIT_FAILURE);
 	}
@@ -127,7 +127,7 @@ int readConfCAN(can_setting_t *cs, int numInstance) {
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return (EXIT_FAILURE);
 	}
@@ -161,7 +161,7 @@ int readGnrlMqtt(mqtt_config_t *ms, int version) {
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return (EXIT_FAILURE);
 	}
@@ -192,7 +192,7 @@ int readConfMqtt(mqtt_config_read_t *msr, int mqtt_id) {
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return (EXIT_FAILURE);
 	}

@@ -27,7 +27,7 @@ static void message_callback(struct mosquitto *mosq, void *obj, const struct mos
 
 	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
 		num = atoi(message->payload);
-		printf("reset %d \n", num);
+		LOG("reset %d", num);
 	}
 }
 

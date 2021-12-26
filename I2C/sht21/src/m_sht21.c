@@ -12,52 +12,30 @@
 #include <common.h>
 
 void* read_sensor(void *param) {
-	float *value_array;
+	float *value_array_float = NULL;
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
 	init_conf_t ic;
-	ic.id =0;
+
+	ic.id = 0;
 
 	getSensorFncSht21(&dSf);
 	init(param, &ucfg, &dSf, I2CS);
-	value_array = malloc((ucfg.mqtt_read->param_size) * sizeof(float));
+	value_array_float = malloc((ucfg.mqtt_read->param_size) * sizeof(float));
 	while (1) {
-		dSf.getMeasurementFloat(value_array, &ic);
-		mqttResultPubFloat(&ucfg, value_array);
+		if (dSf.getMeasurementFloat(value_array_float, &ic) == SUCCESS)
+			mqttResultPubFloat(&ucfg, value_array_float);
 		usleep(100);
 	}
 	pthread_exit(SUCCESS);
 	return SUCCESS;
 }
 
-void terminate(int param) {
-	exit(FAILURE);
-}
+int main(int argc, const char *argv[]) {
 
-int main(int argc, char *argv[]) {
-	int id;
-	signal(SIGTERM, terminate);
-	signal(SIGINT, terminate);
-
-	if (argc < 2) {
-		printf("You need input id aplication.\n");
-		exit(1);
+	if (osStartEngine(argc, argv, read_sensor) != SUCCESS) {
+		exit(FAILURE);
+	} else {
+		exit(SUCCESS);
 	}
-	id = atoi(argv[1]);
-	printf("Start aplication id %d \n", id);
-
-	pthread_t thr;
-	int status;
-	status = pthread_create(&thr, NULL, read_sensor, &id);
-	if (status != 0) {
-		printf("main error: can't create thread, status = %d\n", status);
-		exit(ERROR_CREATE_THREAD);
-	}
-
-	status = pthread_join(thr, 0);
-	if (status != SUCCESS) {
-		printf("main error: can't join thread, status = %d\n", status);
-		exit(ERROR_JOIN_THREAD);
-	}
-	exit(SUCCESS);
 }

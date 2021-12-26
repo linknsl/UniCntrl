@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rexpfd>
+    <destination path="linkmint.192.168.0.136:/usr/bin"/>
+    <options createDirectoryStructure="false" createSelectedOnly="true" descriptionFilePath="/nativeutils/app_put.rexpfd" overWriteExistingFiles="true" reviewSynchronize="false" saveSettings="true"/>
+    <selectedElements>
+        <file path="/apds9300/DebugARM/apds9300"/>
+        <file path="/ds18b20/DebugARM/ds18b20"/>
+        <file path="/mhz19c/Debug_ARM/mhz19c"/>
+        <file path="/sht21/Debug_ARM/sht21"/>
+        <file path="/usb_charging/DebugARM/usb_charging"/>
+    </selectedElements>
+</rexpfd>

@@ -8,13 +8,6 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <poll.h>
 #include <common.h>
 #include <sht21.h>
 
@@ -35,7 +28,7 @@ static void message_callback(struct mosquitto *mosq, void *obj, const struct mos
 	if (mqtt_set_topic_sub(obj, subscribe[0], message->topic)) {
 		num = atoi(message->payload);
 
-		printf("reset %d \n", num);
+		LOG("reset %d", num);
 	}
 }
 
@@ -84,7 +77,7 @@ static int sht21_init(init_conf_t *conf) {
 	if (access(root, F_OK)) {
 		snprintf(path, sizeof(path), HWMON_NEW_DEVICE);
 		if ((fp = fopen(path, "w")) == NULL) {
-			printf("file open failed\n");
+			LOG_ERROR("file open failed");
 			return FAILURE;
 		}
 		rewind(fp);

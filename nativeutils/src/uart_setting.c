@@ -32,7 +32,7 @@ static void Reconnect(bool status) {
 #ifdef ARM
 		autoConfUart(0);
 #else
-		fprintf(stderr, "Reconect \n");
+		LOG_ERROR("Reconect");
 #endif
 	}
 }
@@ -55,14 +55,14 @@ static int set_speed(int speed) {
 			cfsetospeed(&Opt, speed_arr[i]);
 			status = tcsetattr(fd_uart, TCSANOW, &Opt);
 			if (status != 0)
-				perror("tcsetattr fd_uart1");
+				LOG_ERROR("tcsetattr fd_uart1");
 			return FAILURE;
 		}
 		tcflush(fd_uart, TCIOFLUSH);
 	}
 
 	if (i == 12) {
-		fprintf(stderr, "\tSorry, please set the correct baud rate!\n\n");
+		LOG_ERROR("\tSorry, please set the correct baud rate!");
 	}
 	return SUCCESS;
 }
@@ -70,7 +70,7 @@ static int set_speed(int speed) {
 static bool set_Parity(int databits, int stopbits, int parity) {
 	struct termios options;
 	if (tcgetattr(fd_uart, &options) != 0) {
-		perror("SetupSerial 1");
+		LOG_ERROR("SetupSerial 1");
 		return (false);
 	}
 	options.c_cflag &= ~CSIZE;
@@ -82,7 +82,8 @@ static bool set_Parity(int databits, int stopbits, int parity) {
 		options.c_cflag |= CS8;
 		break;
 	default:
-		fprintf(stderr, "Unsupported data size\n");
+		LOG_ERROR("Unsupported data size")
+		;
 		return (false);
 	}
 
@@ -109,7 +110,8 @@ static bool set_Parity(int databits, int stopbits, int parity) {
 		options.c_cflag &= ~CSTOPB;
 		break;
 	default:
-		fprintf(stderr, "Unsupported parity\n");
+		LOG_ERROR("Unsupported parity")
+		;
 		return (false);
 	}
 	switch (stopbits) {
@@ -120,7 +122,8 @@ static bool set_Parity(int databits, int stopbits, int parity) {
 		options.c_cflag |= CSTOPB;
 		break;
 	default:
-		fprintf(stderr, "Unsupported stop bits\n");
+		LOG_ERROR("Unsupported stop bits")
+		;
 		return (false);
 	}
 	/* Set input parity option */
@@ -133,7 +136,7 @@ static bool set_Parity(int databits, int stopbits, int parity) {
 
 	tcflush(fd_uart, TCIFLUSH); /* Update the options and do it NOW */
 	if (tcsetattr(fd_uart, TCSANOW, &options) != 0) {
-		perror("SetupSerial 3");
+		LOG_ERROR("SetupSerial 3");
 		return (false);
 	}
 	return (true);
@@ -141,14 +144,14 @@ static bool set_Parity(int databits, int stopbits, int parity) {
 
 static int openDev(char *Dev) {
 	if (fd_uart > 0) {
-		fprintf(stderr, "Reconect... Old descr %d \n", fd_uart);
+		LOG_ERROR("Reconect... Old descr %d", fd_uart);
 		close(fd_uart);
 		fd_uart = -1;
 	}
 	fd_uart = open(Dev, O_RDWR);
-	fprintf(stderr, "Connect... New descr %d \n", fd_uart);
+	LOG("Connect... New descr %d", fd_uart);
 	if (-1 == fd_uart) {
-		perror("Can't Open Serial Port");
+		LOG_ERROR("Can't Open Serial Port");
 		return -1;
 	} else
 		return 0;
@@ -162,12 +165,12 @@ static int confUart(init_conf_t *conf) {
 	if (fd_uart > 0) {
 		set_speed(us->speed);
 	} else {
-		fprintf(stderr, "Error opening %s: %s\n", us->device, strerror(errno));
+		LOG_ERROR("Error opening %s: %s", us->device, strerror(errno));
 		exit(1);
 	}
 
 	if (set_Parity(us->databits, us->stopbits, 'N') == false) {
-		fprintf(stderr, "Set Parity Error\n");
+		LOG_ERROR("Set Parity Error");
 		close(fd_uart);
 		exit(1);
 	}

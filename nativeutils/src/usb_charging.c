@@ -28,13 +28,13 @@ static void message_callback(struct mosquitto *mosq, void *obj, const struct mos
 		getMeasurementId(value_array_int, &conf);
 		switch (num) {
 		case SOFT_ID:
-			mqtt_gen_topic_and_pub_int(obj, "id", value_array_int[0]);
+			mqtt_gen_topic_and_pub(obj, "id", &value_array_int[0], INT);
 			break;
 		case HARD_ID:
-			mqtt_gen_topic_and_pub_int(obj, "id", value_array_int[1]);
+			mqtt_gen_topic_and_pub(obj, "id", &value_array_int[1], INT);
 			break;
 		case UNIQ_ID:
-			mqtt_gen_topic_and_pub_hex(obj, "id", value_array_int[2]);
+			mqtt_gen_topic_and_pub(obj, "id", &value_array_int[2], HEX);
 			break;
 		default:
 			break;
@@ -168,7 +168,7 @@ static int getMeasurement(int *value_array, init_conf_t *conf) {
 }
 
 static int readCan(uint16_t cmd, uint8_t *response) {
-	int rc = 0,cnt_timeout = 0;
+	int rc = 0, cnt_timeout = 0;
 	struct can_frame frame;
 	fd_set set;
 	struct timeval tv;
@@ -198,7 +198,7 @@ static int readCan(uint16_t cmd, uint8_t *response) {
 					}
 				}
 			} else {
-				printf("Exit timeout \n");
+				LOG_ERROR("Exit timeout");
 				cnt_timeout++;
 				rc = FAILURE;
 				break;

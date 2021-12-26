@@ -39,7 +39,7 @@ static int openDevCan(char *device) {
 	bind(fd_can, (struct sockaddr*) &addr, sizeof(addr));
 
 	if (-1 == fd_can) {
-		perror("Can't Open Serial Port");
+		LOG_ERROR("Can't Open Serial Port");
 		return -1;
 	} else
 		return 0;
@@ -62,7 +62,7 @@ static int confCan(init_conf_t *conf) {
 			setsockopt(fd_can, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
 		}
 	} else {
-		fprintf(stderr, "Error opening %s: %s\n", cs->device, strerror(errno));
+		LOG_ERROR( "Error opening %s: %s", cs->device);
 		exit(1);
 	}
 
