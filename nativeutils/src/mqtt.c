@@ -11,7 +11,7 @@ struct mosquitto *mosq = NULL;
 static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 
 void connect_callback(struct mosquitto *mosq, void *obj, int result) {
-	LOG("connect callback, rc=%d\n", result);
+	LOG("connect callback, rc=%d", result);
 }
 
 int mqtt_set_topic_sub(void *obj, char *param, char *topic) {
