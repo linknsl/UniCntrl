@@ -23,13 +23,12 @@ void* read_sensor(void *param) {
 	devSensorFunc_t dSf;
 	devFunc_t df_can;
 	init_conf_t ic;
-	ic.id = 0;
 
 	getFncCan(&df_can);
 	dSf.devFunc = &df_can;
 
 	getSensorFncUsbCharging(&dSf);
-	init(param, &ucfg, &dSf, CANS);
+	init(param, &ucfg, &dSf, &ic, CANS);
 
 	ucfg.mqtt_read->param_add.start = 0;
 	ucfg.mqtt_read->param_float.start = 3;

@@ -78,19 +78,18 @@ int osStartEngine(int argc, const char *argv[], void *entryPoint) {
 	return SUCCESS;
 }
 
-int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block) {
+int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, init_conf_t *ic, eRead_configure block) {
 	char **params = NULL;
 
-	init_conf_t ic;
 	read_usr_configure(uc, *id, block);
 	get_usr_param_cnf(uc->mqtt_read, params);
 
-	ic.id = *id;
-	ic.dev_sett = uc->dev_cfg;
-	ic.dev_func = dSf;
+	ic->id = *id;
+	ic->dev_sett = uc->dev_cfg;
+	ic->dev_func = dSf;
 
 #ifdef ARM
-	if (dSf->init(&ic) != 0) {
+	if (dSf->init(ic) != 0) {
 		pthread_exit(SUCCESS);
 		exit(SUCCESS);
 	}

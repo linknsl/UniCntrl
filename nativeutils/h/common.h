@@ -138,7 +138,7 @@ float get_setting_float(char *ifname, char *param);
 int get_setting_int(char *ifname, char *param);
 int get_setting_str(char *out, char *ifname, char *param);
 void init_log(const char *name, int id);
-int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, eRead_configure block);
+int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, init_conf_t *ic, eRead_configure block);
 int generate_root_i2c_string(char *out, char *root, char *device, char *addr, char *prefix);
 int generate_root_ow1_string(char *out, char *root, char *addr);
 int addr_tochar(char *out, int addr);

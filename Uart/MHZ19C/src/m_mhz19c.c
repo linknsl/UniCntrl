@@ -18,13 +18,12 @@ void* read_sensor(void *param) {
 	devSensorFunc_t dSf;
 	devFunc_t df_uart;
 	init_conf_t ic;
-	ic.id = 0;
 
 	getFncUart(&df_uart);
 	dSf.devFunc = &df_uart;
 
 	getSensorFncMhz19c(&dSf);
-	init(param, &ucfg, &dSf, UARTS);
+	init(param, &ucfg, &dSf, &ic, UARTS);
 	value_array_int = malloc((ucfg.mqtt_read->param_size) * sizeof(int));
 	while (1) {
 		if (dSf.getMeasurement(value_array_int, &ic) == SUCCESS)

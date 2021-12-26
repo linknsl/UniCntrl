@@ -48,7 +48,6 @@ static void mqtt_subscribe_init(char *topic) {
 	}
 }
 
-
 static uint8_t mhz19_checksum(uint8_t com[]) {
 	int i;
 	uint8_t sum = 0x00;
@@ -75,7 +74,7 @@ static void calibrateZero(void) {
 	pthread_mutex_unlock(&mutex_measurement);
 }
 
-static int getMeasurement(int *value_array , init_conf_t *conf) {
+static int getMeasurement(int *value_array, init_conf_t *conf) {
 	measurement_mhz19_t ms;
 	uint8_t response[RESPONSE_CNT];
 	memset(response, 0, RESPONSE_CNT);
@@ -89,7 +88,7 @@ static int getMeasurement(int *value_array , init_conf_t *conf) {
 		ms.temperature = response[4] - 40;
 		ms.state = response[5];
 	} else {
-		ms.co2_ppm = ms.temperature = ms.state = -1;
+		return FAILURE;
 	}
 	value_array[0] = ms.temperature;
 	value_array[1] = ms.co2_ppm;

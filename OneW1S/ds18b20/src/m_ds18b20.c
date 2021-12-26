@@ -16,10 +16,8 @@ void* read_sensor(void *param) {
 	devSensorFunc_t dSf;
 	init_conf_t ic;
 
-	ic.id = 0;
-
 	getSensorFncDs18b20(&dSf);
-	init(param, &ucfg, &dSf, ONEW1S);
+	init(param, &ucfg, &dSf, &ic, ONEW1S);
 	value_array_float = malloc((ucfg.mqtt_read->param_size) * sizeof(float));
 	while (1) {
 		if (dSf.getMeasurementFloat(value_array_float, &ic) == SUCCESS)

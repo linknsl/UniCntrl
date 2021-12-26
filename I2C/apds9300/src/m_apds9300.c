@@ -15,10 +15,9 @@ void* read_sensor(void *param) {
 	usr_cfg_t ucfg;
 	devSensorFunc_t dSf;
 	init_conf_t ic;
-	ic.id = 0;
 
 	getSensorFncAPDS9300(&dSf);
-	init(param, &ucfg, &dSf, I2CS);
+	init(param, &ucfg, &dSf, &ic, I2CS);
 	value_array_int = malloc((ucfg.mqtt_read->param_size) * sizeof(int));
 	while (1) {
 		if (dSf.getMeasurement(value_array_int, &ic) == SUCCESS)
