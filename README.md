@@ -43,9 +43,9 @@ cd /UniCntrl/x86_utils
 
 Получение информации с apds9300:
 <https://code.woboq.org/linux/linux/drivers/iio/light/apds9300.c.html>
-
+	
+	  in_illuminance - освещенность в lux 
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_illuminance -v
-
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_intensity0 -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_intensity1 -v
 
