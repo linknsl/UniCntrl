@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rexpfd>
+    <destination path="linkmint.192.168.0.136:/etc/init.d"/>
+    <options createDirectoryStructure="false" createSelectedOnly="true" descriptionFilePath="/conf_files/script_update.rexpfd" overWriteExistingFiles="true" reviewSynchronize="false" saveSettings="true"/>
+    <selectedElements>
+        <file path="/conf_files/script_startup/S51ds18b20.sh"/>
+        <file path="/conf_files/script_startup/S52sht21.sh"/>
+        <file path="/conf_files/script_startup/S53apds9300.sh"/>
+        <file path="/conf_files/script_startup/S54mhz19c.sh"/>
+        <file path="/conf_files/script_startup/S55usb_charging.sh"/>
+    </selectedElements>
+</rexpfd>

@@ -151,6 +151,36 @@ int readConfCAN(can_setting_t *cs, int numInstance) {
 	return (EXIT_SUCCESS);
 }
 
+int readConfBrdUtils(brd_setting_t *bs, int numInstance) {
+
+	config_t cfg;
+	config_setting_t *setting;
+
+	bs->name = (char*) malloc(SIZE_STRING);
+
+	config_init(&cfg);
+
+	if (!config_read_file(&cfg, NAME_CONF_FILE)) {
+		LOG_ERROR("%s:%d - %s", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
+		config_destroy(&cfg);
+		return (EXIT_FAILURE);
+	}
+
+	setting = config_lookup(&cfg, CONF_BRD_UTILS);
+	if (setting != NULL) {
+		config_setting_t *brd_set = config_setting_get_elem(setting, numInstance);
+
+		const char *name = NULL;
+		if ((config_setting_lookup_string(brd_set, "name", &name)
+				&& config_setting_lookup_int(brd_set, "mqtt_id", &bs->mqtt_id))) {
+			memcpy(bs->name, name, strlen(name) + 1);
+		}
+	}
+
+	config_destroy(&cfg);
+	return (EXIT_SUCCESS);
+}
+
 int readGnrlMqtt(mqtt_config_t *ms, int version) {
 	config_t cfg;
 	config_setting_t *setting = NULL;
@@ -280,6 +310,12 @@ int read_dev_configure(usr_cfg_t *uc, eRead_configure block, int *id, char *name
 		readConfCAN(uc->dev_cfg, numInstance);
 		*id = ((can_setting_t*) uc->dev_cfg)->mqtt_id;
 		memcpy(name, ((can_setting_t*) uc->dev_cfg)->name, strlen(((can_setting_t*) uc->dev_cfg)->name) + 1);
+		break;
+	case BRDUTILS:
+		uc->dev_cfg = malloc(sizeof(brd_setting_t));
+		readConfBrdUtils(uc->dev_cfg, numInstance);
+		*id = ((brd_setting_t*) uc->dev_cfg)->mqtt_id;
+		memcpy(name, ((brd_setting_t*) uc->dev_cfg)->name, strlen(((brd_setting_t*) uc->dev_cfg)->name) + 1);
 		break;
 	default:
 		break;

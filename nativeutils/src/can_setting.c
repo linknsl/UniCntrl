@@ -62,7 +62,7 @@ static int confCan(init_conf_t *conf) {
 			setsockopt(fd_can, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
 		}
 	} else {
-		LOG_ERROR( "Error opening %s: %s", cs->device);
+		LOG_ERROR( "Error opening %s", cs->device);
 		exit(1);
 	}
 

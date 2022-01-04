@@ -35,15 +35,17 @@ cd /UniCntrl/x86_utils
 - 4.Наименование параметра (температура влажность и.т.д)
 
 Примеры:
- 
 Получение информации с sht21:
-
+<https://code.woboq.org/linux/linux/drivers/hwmon/sht21.c.html>
+ 
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/humidity -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/temperature -v
 
 Получение информации с apds9300:
+<https://code.woboq.org/linux/linux/drivers/iio/light/apds9300.c.html>
 
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_illuminance -v
+
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_intensity0 -v
      ./mosquitto_sub -h localhost -p 1883 -t 0/1/i2c-0/apds9300/in_intensity1 -v
 
@@ -63,6 +65,7 @@ cd /UniCntrl/x86_utils
     ./mosquitto_pub -h localhost -p 1883 -t 0/0/uart1/mhz19C/setCalibrateSpan -m "1100" 
 
 Получение информации с ds18b20:
+<https://code.woboq.org/linux/linux/drivers/w1/slaves/w1_therm.c.html>
 
     ./mosquitto_sub -h localhost -p 1883 -t 0/0/o1wireIO1_24/ds18b20/temperature -v
 

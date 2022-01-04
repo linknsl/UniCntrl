@@ -82,7 +82,8 @@ int init(int *id, usr_cfg_t *uc, devSensorFunc_t *dSf, init_conf_t *ic, eRead_co
 	char **params = NULL;
 
 	read_usr_configure(uc, *id, block);
-	get_usr_param_cnf(uc->mqtt_read, params);
+	if (uc->mqtt_read->params)
+		get_usr_param_cnf(uc->mqtt_read, params);
 
 	ic->id = *id;
 	ic->dev_sett = uc->dev_cfg;

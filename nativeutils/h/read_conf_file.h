@@ -21,13 +21,14 @@
 #define CONF_I2C       "application.i2cs.setting"
 #define CONF_ONEW1S    "application.oneW1s.setting"
 #define CONF_CANS      "application.cans.setting"
+#define CONF_BRD_UTILS "application.brds.setting"
 
 #define SIZE_STRING 64
 #define SIZE_PARAM 32
 #define SIZE_LONG_STRING 128
 
 typedef enum READ_CONFIGURE {
-	UARTS, I2CS, ONEW1S, CANS
+	UARTS, I2CS, ONEW1S, CANS ,BRDUTILS
 } eRead_configure;
 
 typedef struct uart_setting {
@@ -59,6 +60,11 @@ typedef struct can_setting {
 	int mqtt_id;
 	int addr;
 } can_setting_t;
+
+typedef struct brd_setting {
+	char *name;
+	int mqtt_id;
+} brd_setting_t;
 
 typedef struct params {
 	char *param;

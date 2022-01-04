@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef H_SHT21_H_
-#define H_SHT21_H_
+#ifndef H_DS18B20_H_
+#define H_DS18B20_H_
 
 #include <common.h>
 
@@ -19,4 +19,4 @@ typedef struct measurement_ds18b20 {
 
 int getSensorFncDs18b20(devSensorFunc_t *cfgFuncs);
 
-#endif /* H_SHT21_H_ */
+#endif /* H_DS18B20_H_ */

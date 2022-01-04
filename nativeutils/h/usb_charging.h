@@ -6,8 +6,8 @@
  */
 #include <common.h>
 
-#ifndef MHZ19C_H_
-#define MHZ19C_H_
+#ifndef USB_CHARGING_H_
+#define USB_CHARGING_H_
 
 #define RESPONSE_CNT_UCH 8
 #define BYTE_ID 0x531
@@ -33,4 +33,4 @@ typedef struct measurement_usb_chrg {
 
 int getSensorFncUsbCharging(devSensorFunc_t *cfgFuncs);
 
-#endif /* MHZ19C_H_ */
+#endif /* USB_CHARGING_H_ */
