@@ -2,7 +2,7 @@
  ============================================================================
  Name        : Mqtt_Mh-Z19C.c
  Author      : lns
- Version     :
+ Version     : 1.0
  Copyright   : Your copyright notice
  Description : Hello World in C, Ansi-style
  ============================================================================
