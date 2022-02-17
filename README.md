@@ -35,7 +35,7 @@ cd /UniCntrl/x86_utils
 - 4.Наименование параметра (температура влажность и.т.д)
 
 Примеры:
-Получение информации с sht21:
+Получение информации с sht21 :
 <https://code.woboq.org/linux/linux/drivers/hwmon/sht21.c.html>
  
      ./mosquitto_sub -h localhost -p 1883 -t 0/0/i2c-0/sht21/humidity -v
